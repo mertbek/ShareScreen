@@ -50,6 +50,11 @@ appends a suffix to the application id so a build installs next to another one.
 
 iOS needs macOS and Xcode and is not part of this repository yet.
 
+## Releases
+
+See [docs/releasing.md](docs/releasing.md) for how tags become packages and which secrets the
+workflows need.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
