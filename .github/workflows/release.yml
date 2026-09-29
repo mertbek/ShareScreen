@@ -11,6 +11,7 @@ jobs:
   check:
     name: Tag and version
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,6 +30,7 @@ jobs:
     name: Android
     needs: check
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     env:
       SHARESCREEN_SERVER: ${{ secrets.SHARESCREEN_SERVER }}
       TAG: ${{ github.ref_name }}
@@ -83,6 +85,7 @@ jobs:
     name: Desktop (${{ matrix.os }})
     needs: check
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -126,6 +129,7 @@ jobs:
     name: Draft release
     needs: [android, desktop]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
