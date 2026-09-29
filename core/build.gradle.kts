@@ -39,11 +39,12 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.websockets)
-            implementation(libs.multiplatform.settings)
+            api(libs.multiplatform.settings)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.multiplatform.settings.test)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.cio)
