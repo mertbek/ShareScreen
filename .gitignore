@@ -2,16 +2,8 @@
 .gradle
 .kotlin
 build/
+.idea/
 local.properties
-.idea/caches
-.idea/libraries
-.idea/modules.xml
-.idea/workspace.xml
-.idea/navEditor.xml
-.idea/assetWizardSettings.xml
-.idea/deploymentTargetSelector.xml
-.idea/deviceManager.xml
-.idea/kotlinc.xml
 .DS_Store
 captures
 .externalNativeBuild
