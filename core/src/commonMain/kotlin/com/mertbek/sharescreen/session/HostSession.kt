@@ -42,6 +42,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -184,6 +185,7 @@ class HostSession(
                     viaInternet = false,
                 )
                 lanLink = lan
+                withTimeout(LAN_WELCOME_TIMEOUT) { handle(lan, lan.connection.messages.first()) }
             }
             _state.value = HostState.Live(
                 deviceName = deviceName.value,
@@ -491,6 +493,7 @@ class HostSession(
         const val TAG = "HostSession"
         const val LOOPBACK = "127.0.0.1"
         val INTERNET_CONNECT_TIMEOUT = 10.seconds
+        val LAN_WELCOME_TIMEOUT = 5.seconds
         val RESUME_WINDOW = 25.seconds
         val RESUME_FIRST_RETRY = 1.seconds
         val RESUME_MAX_RETRY = 5.seconds
