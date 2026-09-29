@@ -23,6 +23,9 @@ kotlin {
         namespace = "com.mertbek.sharescreen.shared"
         compileSdk = 36
         minSdk = 29
+        androidResources {
+            enable = true
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
