@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import com.mertbek.sharescreen.settings.DEFAULT_SERVER
 import com.mertbek.sharescreen.ui.home.HomeScreen
+import com.mertbek.sharescreen.ui.host.HostScreen
 import com.mertbek.sharescreen.ui.settings.SettingsScreen
 import com.mertbek.sharescreen.ui.theme.ShareScreenTheme
 
@@ -48,6 +49,7 @@ fun App(services: AppServices) {
                     onOpenUrl = services.ui::openUrl,
                     onBack = { stack.removeLast() },
                 )
+                Screen.Host -> HostScreen(services, onBack = { stack.removeLast() })
                 else -> Unit
             }
         }

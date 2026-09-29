@@ -28,5 +28,6 @@ interface PlatformUi {
 
     fun clipboardText(): String? = null
 
-    fun openInputSettings() = Unit
+    @Composable
+    fun InputAccessDialog(onDismiss: () -> Unit) = onDismiss()
 }

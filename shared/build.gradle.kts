@@ -50,6 +50,7 @@ kotlin {
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
             implementation(libs.compose.material.icons)
+            implementation(libs.qrcode.kotlin)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.jetbrains.lifecycle.viewmodel)
             implementation(libs.jetbrains.navigation.compose)
