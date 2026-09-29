@@ -16,4 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "ShareScreenKMP"
 
 include(":shared")
+include(":desktopApp")
 
