@@ -4,15 +4,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.serialization)
 }
 
 @OptIn(ExperimentalWasmDsl::class)
 kotlin {
     androidLibrary {
-        namespace = "com.mertbek.sharescreen.shared"
+        namespace = "com.mertbek.sharescreen.core"
         compileSdk = 36
         minSdk = 29
         compilerOptions {
@@ -20,7 +18,7 @@ kotlin {
         }
     }
 
-    jvm("desktop") {
+    jvm {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -28,6 +26,7 @@ kotlin {
 
     wasmJs {
         browser()
+        nodejs()
         compilerOptions {
             optIn.add("kotlin.js.ExperimentalWasmJsInterop")
         }
@@ -35,23 +34,25 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":core"))
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.compose.ui)
+            api(project(":signaling"))
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.jetbrains.lifecycle.viewmodel)
-            implementation(libs.jetbrains.navigation.compose)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.websockets)
+            implementation(libs.multiplatform.settings)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
-        val desktopMain by getting {
-            dependencies {
-                implementation(libs.kotlinx.coroutines.swing)
-            }
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.cio)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.cio)
+        }
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }
