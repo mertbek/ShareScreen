@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ScreenShare
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Visibility
@@ -48,6 +49,7 @@ private val WideLayout = 700.dp
 fun HomeScreen(
     canHost: Boolean,
     canBeControlled: Boolean,
+    canFindNearby: Boolean,
     onShareClick: () -> Unit,
     onWatchClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -74,7 +76,7 @@ fun HomeScreen(
                         ActionCard(
                             icon = Icons.AutoMirrored.Outlined.ScreenShare,
                             title = stringResource(Res.string.home_share_title),
-                            subtitle = stringResource(Res.string.home_share_subtitle),
+                            subtitle = stringResource(if (canFindNearby) Res.string.home_share_subtitle else Res.string.home_share_subtitle_internet),
                             onClick = onShareClick,
                             modifier = modifier,
                         )
@@ -83,7 +85,7 @@ fun HomeScreen(
                         ActionCard(
                             icon = Icons.Outlined.Visibility,
                             title = stringResource(Res.string.home_watch_title),
-                            subtitle = stringResource(Res.string.home_watch_subtitle),
+                            subtitle = stringResource(if (canFindNearby) Res.string.home_watch_subtitle else Res.string.home_watch_subtitle_internet),
                             onClick = onWatchClick,
                             modifier = modifier,
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -101,7 +103,7 @@ fun HomeScreen(
                         share(Modifier)
                         watch(Modifier)
                     }
-                    HowItWorks(canBeControlled)
+                    HowItWorks(canBeControlled, canFindNearby)
                 }
             }
         }
@@ -155,12 +157,16 @@ private fun Hero() {
 }
 
 @Composable
-private fun HowItWorks(canBeControlled: Boolean) {
+private fun HowItWorks(canBeControlled: Boolean, canFindNearby: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionTitle(stringResource(Res.string.home_how_title))
         SoftCard {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                InfoRow(Icons.Outlined.Wifi, stringResource(Res.string.home_how_connect))
+                if (canFindNearby) {
+                    InfoRow(Icons.Outlined.Wifi, stringResource(Res.string.home_how_connect))
+                } else {
+                    InfoRow(Icons.Outlined.Public, stringResource(Res.string.home_how_connect_internet))
+                }
                 InfoRow(Icons.Outlined.Lock, stringResource(Res.string.home_how_private))
                 if (canBeControlled) {
                     InfoRow(Icons.Outlined.TouchApp, stringResource(Res.string.home_how_control))

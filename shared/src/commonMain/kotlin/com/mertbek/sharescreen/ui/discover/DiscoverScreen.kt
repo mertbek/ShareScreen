@@ -145,13 +145,15 @@ fun DiscoverScreen(
                         Text(stringResource(Res.string.discover_scan_qr))
                     }
                 }
-                NearbyHostsCard(hosts = hosts, onSelect = { selectedHost = it })
+                if (browser != null) NearbyHostsCard(hosts = hosts, onSelect = { selectedHost = it })
                 InternetJoinCard(
                     server = internetServer,
                     onJoin = { roomCode, pin -> internetServer?.let { onConnect(ConnectLink.Internet(it, roomCode, pin)) } },
                     onOpenSettings = onOpenSettings,
                 )
-                ManualConnectCard(onConnect = { host, port, pin -> onConnect(ConnectLink.Lan(host, port, pin)) })
+                if (browser != null) {
+                    ManualConnectCard(onConnect = { host, port, pin -> onConnect(ConnectLink.Lan(host, port, pin)) })
+                }
             }
         }
     }

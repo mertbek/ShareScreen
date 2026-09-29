@@ -24,6 +24,10 @@ interface PlatformUi {
 
     val canScanQr: Boolean get() = false
 
+    val canOverlayVideo: Boolean get() = true
+
+    val audioNeedsPermission: Boolean get() = false
+
     fun scanQr(onResult: (QrScan) -> Unit) = Unit
 
     fun share(text: String) = Unit

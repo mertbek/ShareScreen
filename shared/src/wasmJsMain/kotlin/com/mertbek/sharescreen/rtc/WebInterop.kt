@@ -143,6 +143,7 @@ internal external fun streamStop(stream: JsAny)
         const wrapper = document.createElement('div');
         wrapper.style.overflow = 'hidden';
         wrapper.style.background = '#000';
+        wrapper.style.pointerEvents = 'none';
         const video = document.createElement('video');
         video.autoplay = true;
         video.muted = true;

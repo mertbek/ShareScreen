@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material.icons.outlined.Share
@@ -119,6 +120,7 @@ fun HostScreen(
         if (capture == null) {
             IdleContent(
                 canBeControlled = services.canBeControlled,
+                canFindNearby = services.lanServer != null,
                 onStart = services.hosting::start,
                 modifier = Modifier.fillMaxSize().padding(padding).padding(ScreenPadding),
             )
@@ -155,7 +157,7 @@ fun HostScreen(
 }
 
 @Composable
-private fun IdleContent(canBeControlled: Boolean, onStart: () -> Unit, modifier: Modifier) {
+private fun IdleContent(canBeControlled: Boolean, canFindNearby: Boolean, onStart: () -> Unit, modifier: Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Column(
             modifier = Modifier
@@ -174,14 +176,18 @@ private fun IdleContent(canBeControlled: Boolean, onStart: () -> Unit, modifier:
                 )
             }
             Text(
-                text = stringResource(Res.string.host_idle_description),
+                text = stringResource(if (canFindNearby) Res.string.host_idle_description else Res.string.host_idle_description_internet),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
             SoftCard {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    InfoRow(Icons.Outlined.Wifi, stringResource(Res.string.home_how_connect))
+                    if (canFindNearby) {
+                        InfoRow(Icons.Outlined.Wifi, stringResource(Res.string.home_how_connect))
+                    } else {
+                        InfoRow(Icons.Outlined.Public, stringResource(Res.string.home_how_connect_internet))
+                    }
                     InfoRow(Icons.Outlined.Lock, stringResource(Res.string.home_how_private))
                     if (canBeControlled) {
                         InfoRow(Icons.Outlined.TouchApp, stringResource(Res.string.home_how_control))
@@ -221,7 +227,9 @@ private fun SharingContent(
             }
             ViewersSection(live.viewers, services.host::kick)
         }
-        PreviewSection(services, capture, audioEnabledInSettings)
+        val dialogOpen = live?.pendingViewers?.isNotEmpty() == true ||
+            live?.viewers?.any { it.control == ControlRole.REQUESTED } == true
+        PreviewSection(services, capture, audioEnabledInSettings, showVideo = services.ui.canOverlayVideo || !dialogOpen)
     }
 
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -308,8 +316,9 @@ private fun ConnectionSection(services: AppServices, state: HostState) {
                     HostState.Idle, HostState.Starting -> Busy(stringResource(Res.string.host_starting))
                     is HostState.Live -> {
                         val room = state.internetRoom
-                        var showInternet by rememberSaveable { mutableStateOf(false) }
-                        if (room != null) {
+                        val hasLan = services.lanServer != null
+                        var showInternet by rememberSaveable { mutableStateOf(!hasLan) }
+                        if (room != null && hasLan) {
                             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                                 SegmentedButton(
                                     selected = !showInternet,
@@ -325,8 +334,10 @@ private fun ConnectionSection(services: AppServices, state: HostState) {
                         }
                         if (showInternet && room != null) {
                             InternetDetails(services, room, state.pin, state.deviceName)
-                        } else {
+                        } else if (hasLan) {
                             NearbyDetails(state)
+                        } else {
+                            Text(text = stringResource(Res.string.host_no_network), color = MaterialTheme.colorScheme.error)
                         }
                     }
                     is HostState.Failed -> Text(
@@ -481,13 +492,17 @@ private fun ViewersSection(viewers: List<ViewerInfo>, onKick: (String) -> Unit) 
 }
 
 @Composable
-private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioEnabledInSettings: Boolean) {
+private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioEnabledInSettings: Boolean, showVideo: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionTitle(stringResource(Res.string.host_preview, capture.width, capture.height))
         SoftCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 capture.preview?.let {
-                    services.ui.VideoView(it, Modifier.fillMaxWidth().height(PREVIEW_HEIGHT), Zoom()) { _, _ -> }
+                    if (showVideo) {
+                        services.ui.VideoView(it, Modifier.fillMaxWidth().height(PREVIEW_HEIGHT), Zoom()) { _, _ -> }
+                    } else {
+                        Spacer(Modifier.fillMaxWidth().height(PREVIEW_HEIGHT))
+                    }
                 }
                 Row(
                     modifier = Modifier.padding(horizontal = 4.dp),
@@ -506,7 +521,8 @@ private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioE
                             when {
                                 audioShared -> Res.string.host_audio_shared
                                 !audioEnabledInSettings -> Res.string.host_audio_off
-                                else -> Res.string.host_audio_not_shared
+                                services.ui.audioNeedsPermission -> Res.string.host_audio_not_shared
+                                else -> Res.string.host_audio_unavailable
                             }
                         ),
                         style = MaterialTheme.typography.bodySmall,

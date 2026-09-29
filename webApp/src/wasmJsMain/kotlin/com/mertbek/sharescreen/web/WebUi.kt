@@ -8,6 +8,8 @@ import com.mertbek.sharescreen.rtc.RemoteVideo
 import com.mertbek.sharescreen.rtc.WebVideoView
 
 class WebUi : PlatformUi {
+    override val canOverlayVideo: Boolean get() = false
+
     @Composable
     override fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) =
         WebVideoView(video, modifier, zoom, onVideoSize)

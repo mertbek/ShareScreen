@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
@@ -159,12 +160,36 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
         }
     }
 
+    val overlay = services.ui.canOverlayVideo
+    val message = when {
+        !watching -> null
+        reconnecting -> Res.string.viewer_reconnecting
+        control.role == ControlRole.REQUESTED -> Res.string.viewer_control_waiting
+        notice == ControlNotice.DENIED -> Res.string.viewer_control_denied
+        notice == ControlNotice.ENDED -> Res.string.viewer_control_ended
+        else -> null
+    }
+    val topControls = @Composable {
+        TopControls(
+            title = link.name ?: link.address,
+            streamInfo = streamInfo,
+            hasAudio = hasAudio,
+            muted = muted,
+            control = control,
+            onToggleMute = { session.setMuted(!muted) },
+            onRequestControl = session::requestControl,
+            onReleaseControl = session::releaseControl,
+            onBack = onBack,
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .imePadding(),
     ) {
+        if (!overlay && watching) topControls()
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             when (val current = state) {
                 is ViewerState.Watching -> Box(Modifier.fillMaxSize()) {
@@ -198,48 +223,20 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
                 ViewerState.Negotiating -> Progress(stringResource(Res.string.viewer_negotiating))
             }
 
-            androidx.compose.animation.AnimatedVisibility(
-                visible = controlsVisible && watching,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(Alignment.TopCenter),
-            ) {
-                TopControls(
-                    title = link.name ?: link.address,
-                    streamInfo = streamInfo,
-                    hasAudio = hasAudio,
-                    muted = muted,
-                    control = control,
-                    onToggleMute = { session.setMuted(!muted) },
-                    onRequestControl = session::requestControl,
-                    onReleaseControl = session::releaseControl,
-                    onBack = onBack,
-                )
-            }
-
-            val message = when {
-                !watching -> null
-                reconnecting -> Res.string.viewer_reconnecting
-                control.role == ControlRole.REQUESTED -> Res.string.viewer_control_waiting
-                notice == ControlNotice.DENIED -> Res.string.viewer_control_denied
-                notice == ControlNotice.ENDED -> Res.string.viewer_control_ended
-                else -> null
-            }
-            if (message != null) {
-                Text(
-                    text = stringResource(message),
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp)
-                        .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(16.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+            if (overlay) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = controlsVisible && watching,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.TopCenter),
+                ) {
+                    topControls()
+                }
+                if (message != null) NoticeText(message, Modifier.align(Alignment.BottomCenter).padding(16.dp))
             }
         }
 
+        if (!overlay && message != null) NoticeText(message, Modifier.padding(8.dp))
         if (controlling) {
             if (keyboardOpen) {
                 KeyboardBar(onType = session::type, onEnter = { session.press(ControlKey.ENTER) })
@@ -258,6 +255,19 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
             )
         }
     }
+}
+
+@Composable
+private fun NoticeText(message: StringResource, modifier: Modifier) {
+    Text(
+        text = stringResource(message),
+        color = Color.White,
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
 
 @Composable

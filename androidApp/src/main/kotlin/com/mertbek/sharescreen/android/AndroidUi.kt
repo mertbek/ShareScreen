@@ -41,6 +41,8 @@ class AndroidUi(
 
     override val canScanQr: Boolean get() = true
 
+    override val audioNeedsPermission: Boolean get() = true
+
     @Composable
     override fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) =
         AndroidVideoView(video, eglContext, modifier, zoom, onVideoSize)

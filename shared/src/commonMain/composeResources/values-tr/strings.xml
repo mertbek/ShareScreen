@@ -144,4 +144,9 @@
     <string name="viewer_zoom_mode">Görüntüyü yakınlaştır ve kaydır</string>
     <string name="viewer_reconnecting">Bağlantı kesildi. Yeniden bağlanılıyor…</string>
     <string name="host_internet_reconnecting">İnternet sunucusuna yeniden bağlanılıyor… İzleyiciler izlemeye devam ediyor.</string>
+    <string name="home_share_subtitle_internet">Oda kodu veya davet bağlantısıyla paylaş</string>
+    <string name="home_watch_subtitle_internet">Oda koduyla paylaşılan bir ekrana katıl</string>
+    <string name="home_how_connect_internet">Davet bağlantısını ya da oda kodu ve PIN'i izleyecek kişiye gönder.</string>
+    <string name="host_idle_description_internet">Paylaşımı başlattığında izleyecek kişiler için bir oda kodu ve PIN alırsın. Tarayıcı önce neyi paylaşacağını soracak.</string>
+    <string name="host_audio_unavailable">Bu cihazdan ses paylaşılmıyor.</string>
 </resources>
