@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import com.mertbek.sharescreen.link.ConnectLink
 import com.mertbek.sharescreen.settings.DEFAULT_SERVER
+import com.mertbek.sharescreen.ui.discover.DiscoverScreen
 import com.mertbek.sharescreen.ui.home.HomeScreen
 import com.mertbek.sharescreen.ui.host.HostScreen
 import com.mertbek.sharescreen.ui.settings.SettingsScreen
@@ -50,6 +52,12 @@ fun App(services: AppServices) {
                     onBack = { stack.removeLast() },
                 )
                 Screen.Host -> HostScreen(services, onBack = { stack.removeLast() })
+                Screen.Discover -> DiscoverScreen(
+                    services = services,
+                    onBack = { stack.removeLast() },
+                    onConnect = { link -> stack += Screen.Viewer(link) },
+                    onOpenSettings = { stack += Screen.Settings },
+                )
                 else -> Unit
             }
         }
@@ -75,5 +83,9 @@ sealed interface Screen {
 
     data object Settings : Screen {
         override val depth = 1
+    }
+
+    data class Viewer(val link: ConnectLink) : Screen {
+        override val depth = 2
     }
 }
