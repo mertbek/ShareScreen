@@ -70,6 +70,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import com.mertbek.sharescreen.app.AppServices
 import com.mertbek.sharescreen.control.ControlRole
+import com.mertbek.sharescreen.control.HostPlatform
 import com.mertbek.sharescreen.control.Zoom
 import com.mertbek.sharescreen.link.ConnectLink
 import com.mertbek.sharescreen.rtc.CapturedMedia
@@ -149,6 +150,7 @@ fun HostScreen(
         } else if (controlRequest != null) {
             ControlRequestDialog(
                 viewer = controlRequest,
+                desktop = services.inputInjector?.platform == HostPlatform.DESKTOP,
                 onGrant = { host.grantControl(controlRequest.id) },
                 onDeny = { host.denyControl(controlRequest.id) },
             )
@@ -610,12 +612,19 @@ private fun RemoteControlCard(services: AppServices, state: HostState.Live) {
 }
 
 @Composable
-private fun ControlRequestDialog(viewer: ViewerInfo, onGrant: () -> Unit, onDeny: () -> Unit) {
+private fun ControlRequestDialog(viewer: ViewerInfo, desktop: Boolean, onGrant: () -> Unit, onDeny: () -> Unit) {
     AlertDialog(
         onDismissRequest = {},
         icon = { Icon(Icons.Outlined.TouchApp, contentDescription = null) },
         title = { Text(stringResource(Res.string.host_control_request_title)) },
-        text = { Text(stringResource(Res.string.host_control_request_message, viewer.deviceName)) },
+        text = {
+            Text(
+                stringResource(
+                    if (desktop) Res.string.host_control_request_message_desktop else Res.string.host_control_request_message,
+                    viewer.deviceName,
+                ),
+            )
+        },
         confirmButton = { TextButton(onClick = onGrant) { Text(stringResource(Res.string.host_join_request_allow)) } },
         dismissButton = { TextButton(onClick = onDeny) { Text(stringResource(Res.string.host_join_request_deny)) } },
     )

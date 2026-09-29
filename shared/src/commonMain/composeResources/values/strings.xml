@@ -151,4 +151,5 @@
     <string name="home_how_connect_internet">Send the invite link, or the room code and PIN, to whoever should watch.</string>
     <string name="host_idle_description_internet">Start sharing to get a room code and PIN for the people who should watch. Your browser will ask what to share first.</string>
     <string name="host_audio_unavailable">Sound is not shared from this device.</string>
+    <string name="host_control_request_message_desktop">%1$s wants to control this computer. They will be able to move the mouse, type and use any program or command as if they were sitting at it. Only allow someone you trust.</string>
 </resources>
