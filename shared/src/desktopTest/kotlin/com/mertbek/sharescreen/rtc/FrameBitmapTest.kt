@@ -5,6 +5,7 @@ import dev.onvoid.webrtc.media.video.VideoFrame
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class FrameBitmapTest {
@@ -33,6 +34,17 @@ class FrameBitmapTest {
         val green = pixel shr 8 and 0xFF
         val blue = pixel and 0xFF
         assertTrue(red > 200 && green < 60 && blue < 60, "pixel was ${pixel.toUInt().toString(16)}")
+    }
+
+    @Test
+    fun `an oversized frame is ignored`() {
+        DesktopRtcEngine().factory
+        val frame = VideoFrame(NativeI420Buffer.allocate(4200, 4200), 0)
+        val frameBitmap = FrameBitmap()
+        frameBitmap.onVideoFrame(frame)
+        frame.release()
+        assertNull(frameBitmap.frame.value)
+        frameBitmap.close()
     }
 
     private fun fill(plane: java.nio.ByteBuffer, stride: Int, rows: Int, value: Int) {

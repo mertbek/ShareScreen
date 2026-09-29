@@ -31,8 +31,11 @@ class TouchPlanner {
         abandoned.retainAll(ids)
         for ((id, point) in pointers) {
             if (id in abandoned) continue
+            if (id !in tracks && tracks.size >= MAX_TRACKS) continue
             val track = tracks.getOrPut(id) { Track(point) }
-            if (!track.up) track.pending += TimedPoint(time, point)
+            if (track.up) continue
+            if (track.pending.size >= MAX_PENDING_POINTS) track.pending.removeFirst()
+            track.pending += TimedPoint(time, point)
         }
         for ((id, track) in tracks) {
             if (id !in ids && !track.up) {
@@ -88,5 +91,7 @@ class TouchPlanner {
 
     private companion object {
         const val MAX_BATCH_MILLIS = 100L
+        const val MAX_PENDING_POINTS = 256
+        const val MAX_TRACKS = 20
     }
 }

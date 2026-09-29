@@ -36,6 +36,7 @@ class FrameBitmap : VideoTrackSink {
         try {
             val width = frame.buffer.width
             val height = frame.buffer.height
+            if (width <= 0 || height <= 0 || width.toLong() * height > MAX_PIXELS) return
             val byteCount = width * height * BYTES_PER_PIXEL
             if (pixels.size != byteCount) pixels = ByteArray(byteCount)
             VideoBufferConverter.convertFromI420(frame.buffer, pixels, FourCC.ARGB)
@@ -69,6 +70,7 @@ class FrameBitmap : VideoTrackSink {
 
     private companion object {
         const val BYTES_PER_PIXEL = 4
+        const val MAX_PIXELS = 4096L * 4096L
         const val KEEP_RETIRED = 3
     }
 }

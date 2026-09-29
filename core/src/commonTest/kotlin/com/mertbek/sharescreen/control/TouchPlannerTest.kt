@@ -2,6 +2,7 @@ package com.mertbek.sharescreen.control
 
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.test.Test
 
 class TouchPlannerTest {
@@ -106,6 +107,20 @@ class TouchPlannerTest {
 
         planner.update(48, listOf(2L to p(1f, 1f)))
         assertEquals(listOf(2L), planner.nextBatch()!!.map { it.pointerId })
+    }
+
+    @Test
+    fun `a flood of positions does not grow the queue without limit`() {
+        repeat(10_000) { planner.update(it.toLong(), listOf(1L to p(it.toFloat(), 0f))) }
+        val points = planner.nextBatch()!!.single().points
+        assertTrue(points.size <= 256, "queued ${points.size}")
+        assertEquals(9_999f, points.last().x)
+    }
+
+    @Test
+    fun `only a limited number of fingers is tracked`() {
+        planner.update(0, (1L..100L).map { it to p(it.toFloat(), 0f) })
+        assertEquals(20, planner.nextBatch()!!.size)
     }
 
     @Test
