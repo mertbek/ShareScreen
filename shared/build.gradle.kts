@@ -78,6 +78,8 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
                 api(libs.webrtc.java)
+                implementation(libs.jna)
+                implementation(libs.jna.platform)
                 runtimeOnly("dev.onvoid.webrtc:webrtc-java:${libs.versions.webrtcJava.get()}:$webrtcNatives")
             }
         }
