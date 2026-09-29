@@ -6,11 +6,20 @@ import dev.onvoid.webrtc.RTCBundlePolicy
 import dev.onvoid.webrtc.RTCConfiguration
 import dev.onvoid.webrtc.RTCIceServer
 import dev.onvoid.webrtc.RTCRtcpMuxPolicy
+import dev.onvoid.webrtc.media.audio.AudioDeviceModule
 import dev.onvoid.webrtc.media.audio.AudioDeviceModuleBase
+import dev.onvoid.webrtc.media.audio.AudioLayer
 
 class DesktopRtcEngine(private val audioDevice: AudioDeviceModuleBase? = null) : RtcEngine {
     val factory: PeerConnectionFactory by lazy {
-        audioDevice?.let { PeerConnectionFactory(it) } ?: PeerConnectionFactory()
+        audioDevice?.let { PeerConnectionFactory(it) } ?: createFactory()
+    }
+
+    private fun createFactory(): PeerConnectionFactory = try {
+        PeerConnectionFactory()
+    } catch (e: Error) {
+        if (e.javaClass != Error::class.java) throw e
+        PeerConnectionFactory(AudioDeviceModule(AudioLayer.kDummyAudio))
     }
 
     override fun createPeer(iceServers: List<IceServerConfig>): RtcPeer {
