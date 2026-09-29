@@ -6,12 +6,23 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import com.mertbek.sharescreen.link.ConnectLink
+import com.mertbek.sharescreen.resources.Res
+import com.mertbek.sharescreen.resources.action_cancel
+import com.mertbek.sharescreen.resources.discover_connect
+import com.mertbek.sharescreen.resources.link_confirm_message
+import com.mertbek.sharescreen.resources.link_confirm_title
+import org.jetbrains.compose.resources.stringResource
 import com.mertbek.sharescreen.ui.discover.DiscoverScreen
 import com.mertbek.sharescreen.ui.home.HomeScreen
 import com.mertbek.sharescreen.ui.host.HostScreen
@@ -30,11 +41,28 @@ fun App(
     ShareScreenTheme {
         val stack = remember { mutableStateListOf<Screen>(Screen.Home) }
         val current = stack.last()
+        var unconfirmedLink by remember { mutableStateOf<ConnectLink?>(null) }
+        val defaultServer = services.settings.settings.value.defaultServer
         LaunchedEffect(incomingLink) {
             if (incomingLink == null) return@LaunchedEffect
-            stack.retainAll { it.depth < 2 }
-            stack += Screen.Viewer(incomingLink)
+            if (incomingLink is ConnectLink.Internet && incomingLink.server == defaultServer) {
+                stack.retainAll { it.depth < 2 }
+                stack += Screen.Viewer(incomingLink)
+            } else {
+                unconfirmedLink = incomingLink
+            }
             onIncomingLinkHandled()
+        }
+        unconfirmedLink?.let { link ->
+            ConfirmLinkDialog(
+                link = link,
+                onConfirm = {
+                    unconfirmedLink = null
+                    stack.retainAll { it.depth < 2 }
+                    stack += Screen.Viewer(link)
+                },
+                onDismiss = { unconfirmedLink = null },
+            )
         }
         LaunchedEffect(showHost) {
             if (!showHost) return@LaunchedEffect
@@ -87,6 +115,17 @@ fun App(
             }
         }
     }
+}
+
+@Composable
+private fun ConfirmLinkDialog(link: ConnectLink, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.link_confirm_title, link.name ?: link.address)) },
+        text = { Text(stringResource(Res.string.link_confirm_message, link.address)) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(Res.string.discover_connect)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+    )
 }
 
 const val APP_VERSION = "0.1.0"
