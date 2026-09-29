@@ -16,6 +16,7 @@ import com.mertbek.sharescreen.ui.discover.DiscoverScreen
 import com.mertbek.sharescreen.ui.home.HomeScreen
 import com.mertbek.sharescreen.ui.host.HostScreen
 import com.mertbek.sharescreen.ui.settings.SettingsScreen
+import com.mertbek.sharescreen.ui.viewer.ViewerScreen
 import com.mertbek.sharescreen.ui.theme.ShareScreenTheme
 
 @Composable
@@ -58,7 +59,7 @@ fun App(services: AppServices) {
                     onConnect = { link -> stack += Screen.Viewer(link) },
                     onOpenSettings = { stack += Screen.Settings },
                 )
-                else -> Unit
+                is Screen.Viewer -> ViewerScreen(services, screen.link, onBack = { stack.removeLast() })
             }
         }
     }

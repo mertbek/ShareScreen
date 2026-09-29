@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -17,7 +18,7 @@ import com.mertbek.sharescreen.control.fitVideo
 import kotlin.math.roundToInt
 
 @Composable
-fun DesktopVideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom) {
+fun DesktopVideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) {
     val track = (video as DesktopRemoteVideo).track
     val sink = remember(track) { FrameBitmap() }
     DisposableEffect(track) {
@@ -25,6 +26,11 @@ fun DesktopVideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom) {
         onDispose { track.removeSink(sink) }
     }
     val image by sink.image.collectAsState()
+    val width = image?.width
+    val height = image?.height
+    LaunchedEffect(width, height) {
+        if (width != null && height != null) onVideoSize(width, height)
+    }
 
     Canvas(modifier.background(Color.Black)) {
         val bitmap = image ?: return@Canvas

@@ -8,7 +8,7 @@ import com.mertbek.sharescreen.rtc.RemoteVideo
 
 interface PlatformUi {
     @Composable
-    fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom)
+    fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (width: Int, height: Int) -> Unit)
 
     @Composable
     fun BackHandler(enabled: Boolean, onBack: () -> Unit) = Unit

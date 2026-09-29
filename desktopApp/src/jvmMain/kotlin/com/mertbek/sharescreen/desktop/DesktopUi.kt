@@ -15,7 +15,8 @@ import java.net.URI
 class DesktopUi : PlatformUi {
 
     @Composable
-    override fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom) = DesktopVideoView(video, modifier, zoom)
+    override fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) =
+        DesktopVideoView(video, modifier, zoom, onVideoSize)
 
     override fun share(text: String) = copyToClipboard(text)
 

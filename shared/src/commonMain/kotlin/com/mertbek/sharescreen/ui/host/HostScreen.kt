@@ -487,7 +487,7 @@ private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioE
         SoftCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 capture.preview?.let {
-                    services.ui.VideoView(it, Modifier.fillMaxWidth().height(PREVIEW_HEIGHT), Zoom())
+                    services.ui.VideoView(it, Modifier.fillMaxWidth().height(PREVIEW_HEIGHT), Zoom()) { _, _ -> }
                 }
                 Row(
                     modifier = Modifier.padding(horizontal = 4.dp),
