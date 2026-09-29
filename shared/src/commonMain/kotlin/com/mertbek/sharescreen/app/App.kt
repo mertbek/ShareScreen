@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import com.mertbek.sharescreen.settings.DEFAULT_SERVER
 import com.mertbek.sharescreen.ui.home.HomeScreen
+import com.mertbek.sharescreen.ui.settings.SettingsScreen
 import com.mertbek.sharescreen.ui.theme.ShareScreenTheme
 
 @Composable
@@ -38,11 +40,21 @@ fun App(services: AppServices) {
                     onWatchClick = { stack += Screen.Discover },
                     onSettingsClick = { stack += Screen.Settings },
                 )
+                Screen.Settings -> SettingsScreen(
+                    repository = services.settings,
+                    canBeControlled = services.canBeControlled,
+                    versionName = APP_VERSION,
+                    privacyUrl = "https://" + DEFAULT_SERVER.removePrefix("wss://") + "/privacy",
+                    onOpenUrl = services.ui::openUrl,
+                    onBack = { stack.removeLast() },
+                )
                 else -> Unit
             }
         }
     }
 }
+
+const val APP_VERSION = "0.1.0"
 
 sealed interface Screen {
     val depth: Int
