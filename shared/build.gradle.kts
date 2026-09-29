@@ -45,6 +45,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":core"))
             implementation(libs.compose.runtime)
+            implementation(libs.compose.resources)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
@@ -69,4 +70,9 @@ kotlin {
             }
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "com.mertbek.sharescreen.resources"
+    generateResClass = always
 }
