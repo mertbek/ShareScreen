@@ -17,4 +17,5 @@ rootProject.name = "ShareScreenKMP"
 
 include(":shared")
 include(":desktopApp")
+include(":webApp")
 
