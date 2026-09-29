@@ -5,8 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.awt.GraphicsEnvironment
 import java.awt.Robot
-import java.awt.Toolkit
-import java.awt.datatransfer.StringSelection
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 
@@ -16,6 +14,7 @@ class DesktopInputInjector : InputInjector {
     private val heldButtons = mutableSetOf<Int>()
     private val heldKeys = mutableSetOf<Int>()
     private var touchDown = false
+    private val pasteClipboard by lazy { PasteClipboard() }
 
     override val platform = HostPlatform.DESKTOP
     override val isAvailable: StateFlow<Boolean> = MutableStateFlow(robot != null)
@@ -77,7 +76,7 @@ class DesktopInputInjector : InputInjector {
         val robot = robot ?: return
         repeat(deleteBefore.coerceIn(0, MAX_EDIT)) { tap(KeyEvent.VK_BACK_SPACE) }
         if (text.isEmpty()) return
-        Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text.take(MAX_EDIT)), null)
+        pasteClipboard.put(text.take(MAX_EDIT))
         val shortcut = if (isMac) KeyEvent.VK_META else KeyEvent.VK_CONTROL
         pressKey(shortcut)
         tap(KeyEvent.VK_V)
