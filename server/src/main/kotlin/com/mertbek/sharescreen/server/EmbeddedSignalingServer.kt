@@ -24,7 +24,7 @@ class EmbeddedSignalingServer {
             SignalingConfig(singleRoom = true, hostSecret = hostSecret, maxViewersPerRoom = maxViewers)
         )
         val server = scope.embeddedServer(CIO, port = 0, host = "0.0.0.0") {
-            signalingModule(roomManager)
+            signalingModule(roomManager, allowBrowserOrigins = false)
         }
         server.startSuspend(wait = false)
         this.server = server

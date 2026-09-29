@@ -18,6 +18,8 @@ import com.mertbek.sharescreen.signaling.SignalMessage.SessionEnded
 import com.mertbek.sharescreen.signaling.SignalMessage.Welcome
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.websocket.Frame
@@ -27,6 +29,7 @@ import io.ktor.websocket.readText
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.time.Duration.Companion.seconds
 
@@ -108,9 +111,30 @@ class SignalingRouteTest {
         assertEquals(SessionEnded, viewer.receiveMessage())
     }
 
-    private fun signalingTest(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
+    @Test
+    fun `browsers are turned away when the server refuses their origin`() = signalingTest(allowBrowserOrigins = false) {
+        val host = connect()
+        host.sendMessage(Hello(PeerRole.HOST, "Host", pin = PIN, hostSecret = SECRET))
+        host.receiveMessage()
+
+        repeat(12) {
+            val browser = createClient { install(WebSockets) }
+                .webSocketSession(SIGNALING_PATH) { header(HttpHeaders.Origin, "https://evil.example") }
+            runCatching { browser.sendMessage(Hello(PeerRole.VIEWER, "Page", pin = "000000")) }
+            assertNull(browser.incoming.receiveCatching().getOrNull())
+        }
+
+        val viewer = connect()
+        viewer.sendMessage(Hello(PeerRole.VIEWER, "Viewer", pin = PIN))
+        assertIs<Welcome>(viewer.receiveMessage())
+    }
+
+    private fun signalingTest(
+        allowBrowserOrigins: Boolean = true,
+        block: suspend ApplicationTestBuilder.() -> Unit,
+    ) = testApplication {
         application {
-            signalingModule(RoomManager(SignalingConfig(singleRoom = true, hostSecret = SECRET)))
+            signalingModule(RoomManager(SignalingConfig(singleRoom = true, hostSecret = SECRET)), allowBrowserOrigins)
         }
         withTimeout(10.seconds) { block() }
     }

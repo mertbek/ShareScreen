@@ -7,6 +7,7 @@ import com.mertbek.sharescreen.signaling.RoomManager
 import com.mertbek.sharescreen.signaling.SIGNALING_PATH
 import com.mertbek.sharescreen.signaling.SignalCodec
 import com.mertbek.sharescreen.signaling.SignalMessage
+import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.routing.application
 import io.ktor.server.application.install
@@ -31,10 +32,10 @@ import kotlin.time.Duration.Companion.seconds
 private val HELLO_TIMEOUT = 10.seconds
 private const val OUTBOX_CAPACITY = 64
 
-fun Application.signalingModule(roomManager: RoomManager) {
+fun Application.signalingModule(roomManager: RoomManager, allowBrowserOrigins: Boolean = true) {
     installSignalingWebSockets()
     routing {
-        signalingRoute(roomManager)
+        signalingRoute(roomManager, allowBrowserOrigins = allowBrowserOrigins)
     }
 }
 
@@ -46,9 +47,17 @@ fun Application.installSignalingWebSockets() {
     }
 }
 
-fun Route.signalingRoute(roomManager: RoomManager, path: String = SIGNALING_PATH) {
+fun Route.signalingRoute(
+    roomManager: RoomManager,
+    path: String = SIGNALING_PATH,
+    allowBrowserOrigins: Boolean = true,
+) {
     application.launch { roomManager.expirePeriodically() }
     webSocket(path) {
+        if (!allowBrowserOrigins && call.request.headers[HttpHeaders.Origin] != null) {
+            close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Browsers are not allowed here"))
+            return@webSocket
+        }
         val link = ChannelPeerLink()
         val writer = launch {
             try {
