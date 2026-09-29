@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 class DesktopScreenSource(private val capture: DesktopScreenCapture) : ScreenSource {
 
     override suspend fun start(quality: VideoQuality, shareAudio: Boolean, wholeScreenOnly: Boolean): CapturedMedia =
-        withContext(Dispatchers.IO) { capture.start(quality) }
+        withContext(Dispatchers.IO) { capture.start(quality, shareAudio = shareAudio) }
 
     override fun stop() = capture.stop()
 }

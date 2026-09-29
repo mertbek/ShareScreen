@@ -116,6 +116,15 @@ class DesktopPeer(private val factory: PeerConnectionFactory, config: RTCConfigu
         }
         sender.parameters = parameters
         preferH264(transceiver)
+        desktop.audio?.let { audio ->
+            val audioInit = RTCRtpTransceiverInit().apply {
+                direction = RTCRtpTransceiverDirection.SEND_ONLY
+                streamIds = listOf(STREAM_ID)
+            }
+            val audioTransceiver = connection.addTransceiver(audio, audioInit)
+            val audioSender = audioTransceiver.sender
+            synchronized(lock) { disposers += { audioSender.dispose(); audioTransceiver.dispose() } }
+        }
     }
 
     override fun restartIce() = connection.restartIce()

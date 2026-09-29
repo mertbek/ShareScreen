@@ -1,5 +1,6 @@
 package com.mertbek.sharescreen.rtc
 
+import com.mertbek.sharescreen.audio.SystemAudioSource
 import com.mertbek.sharescreen.settings.VideoQuality
 import dev.onvoid.webrtc.media.video.VideoDesktopSource
 import dev.onvoid.webrtc.media.video.desktop.DesktopSource
@@ -24,7 +25,7 @@ class DesktopScreenCapture(private val engine: DesktopRtcEngine) {
         }
     }
 
-    fun start(quality: VideoQuality, screen: DesktopSource? = null): DesktopCapturedMedia {
+    fun start(quality: VideoQuality, screen: DesktopSource? = null, shareAudio: Boolean = false): DesktopCapturedMedia {
         check(media == null) { "Capture is already running" }
         val factory = engine.factory
         val target = screen ?: screens().firstOrNull() ?: throw RtcException("No screen to capture")
@@ -36,7 +37,9 @@ class DesktopScreenCapture(private val engine: DesktopRtcEngine) {
             start()
         }
         val track = factory.createVideoTrack(VIDEO_TRACK_ID, source)
-        val captured = DesktopCapturedMedia(track, width, height, quality.maxBitrateBps) {
+        val systemAudio = if (shareAudio) SystemAudioSource.create(factory) else null
+        val captured = DesktopCapturedMedia(track, width, height, quality.maxBitrateBps, systemAudio?.track) {
+            systemAudio?.close()
             source.stop()
             source.dispose()
         }

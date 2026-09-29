@@ -71,8 +71,10 @@ An Android host maps pointer input to gestures; a desktop host maps touches to m
 - Codec: H.264 where both sides offer it, VP8 otherwise.
 - Android renders with `SurfaceViewRenderer`, desktop converts I420 frames to a Skia bitmap,
   the web embeds a `<video>` element.
-- Desktop system audio capture is not part of the first version; the browser can share tab or
-  system audio through `getDisplayMedia`.
+- Desktop system audio: on Windows the host records the default output device through WASAPI
+  loopback (JNA calls into COM) and feeds a `CustomAudioSource` in 10 ms frames, sending
+  silence while nothing plays so the stream keeps its timing. macOS and Linux share the
+  picture only for now. The browser shares tab or system audio through `getDisplayMedia`.
 
 ## Web notes
 

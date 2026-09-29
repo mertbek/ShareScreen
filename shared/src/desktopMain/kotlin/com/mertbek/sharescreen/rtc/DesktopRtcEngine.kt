@@ -6,9 +6,12 @@ import dev.onvoid.webrtc.RTCBundlePolicy
 import dev.onvoid.webrtc.RTCConfiguration
 import dev.onvoid.webrtc.RTCIceServer
 import dev.onvoid.webrtc.RTCRtcpMuxPolicy
+import dev.onvoid.webrtc.media.audio.AudioDeviceModuleBase
 
-class DesktopRtcEngine : RtcEngine {
-    val factory: PeerConnectionFactory by lazy { PeerConnectionFactory() }
+class DesktopRtcEngine(private val audioDevice: AudioDeviceModuleBase? = null) : RtcEngine {
+    val factory: PeerConnectionFactory by lazy {
+        audioDevice?.let { PeerConnectionFactory(it) } ?: PeerConnectionFactory()
+    }
 
     override fun createPeer(iceServers: List<IceServerConfig>): RtcPeer {
         val config = RTCConfiguration().apply {

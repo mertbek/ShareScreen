@@ -8,9 +8,10 @@ class DesktopCapturedMedia(
     override val width: Int,
     override val height: Int,
     override val maxVideoBitrateBps: Int,
+    val audio: AudioTrack? = null,
     private val releaseSource: () -> Unit,
 ) : CapturedMedia {
-    override val hasAudio: Boolean = false
+    override val hasAudio: Boolean = audio != null
     override val preview: RemoteVideo = DesktopRemoteVideo(video)
 
     fun release() {
@@ -21,7 +22,7 @@ class DesktopCapturedMedia(
 
 class DesktopRemoteVideo(val track: VideoTrack) : RemoteVideo
 
-class DesktopRemoteAudio(private val track: AudioTrack) : RemoteAudio {
+class DesktopRemoteAudio(val track: AudioTrack) : RemoteAudio {
     override fun setEnabled(enabled: Boolean) {
         track.isEnabled = enabled
     }
