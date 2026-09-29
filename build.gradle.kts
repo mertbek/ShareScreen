@@ -8,3 +8,11 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
 }
+
+subprojects {
+    tasks.withType<Test>().configureEach {
+        testLogging {
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+    }
+}
