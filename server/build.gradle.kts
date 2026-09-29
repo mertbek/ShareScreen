@@ -23,9 +23,11 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
 
+    testImplementation(project(":core"))
     testImplementation(libs.kotlin.test)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.ktor.client.websockets)
+    testImplementation(libs.ktor.client.cio)
 }
 
 tasks.test {
