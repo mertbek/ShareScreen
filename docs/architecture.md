@@ -22,15 +22,20 @@ plain `ws://` connections to a LAN address.
 
 | Module | Targets | Contents |
 |---|---|---|
-| `shared` | android, desktop (jvm), wasmJs | protocol, signaling client, session logic, UI, platform interfaces |
-| `server` | jvm | rooms, signaling route, standalone server, embedded LAN server |
-| `androidApp` | android | activity, foreground service, accessibility service |
-| `desktopApp` | jvm | window, packaging |
+| `signaling` | android, jvm, wasmJs | wire protocol, room manager, ICE configuration |
+| `core` | android, jvm, wasmJs | links, control protocol, RTC and platform interfaces, signaling client, host and viewer sessions, settings |
+| `shared` | android, desktop (jvm), wasmJs | Compose UI and the RTC engine, screen source and video view of each platform |
+| `server` | jvm | signaling route, embedded LAN server |
+| `lan` | jvm | LAN server adapter, mDNS discovery |
+| `androidApp` | android | activity, foreground service, accessibility service, NSD, `full` and `lite` editions |
+| `desktopApp` | jvm | window, wiring |
 | `webApp` | wasmJs | entry point, host page |
 
-Platform code sits behind interfaces declared in `shared/commonMain` and is provided by each
-app at start-up: RTC engine, screen source, video view, input injector, LAN discovery,
-embedded server.
+`signaling` and `core` have no UI or platform dependencies, so their tests run on the JVM and
+under Node for wasm. Platform code sits behind interfaces declared in `core` and is provided by
+each app at start-up through `AppServices`: RTC engine, screen source, input injector, LAN
+server, address provider, LAN discovery, and `PlatformUi` for the video view, back handling,
+QR scanning, sharing and clipboard.
 
 ## Technology choices
 
@@ -42,10 +47,10 @@ embedded server.
 | Serialization | kotlinx.serialization JSON | same wire format as the existing Android app and Cloudflare worker |
 | WebRTC, Android | `stream-webrtc-android` | reuses the capture and audio work of the first app |
 | WebRTC, desktop | `webrtc-java` 0.19 | native builds for Windows, macOS, Linux; screen and window capturer |
-| WebRTC, web | browser WebRTC through Wasm interop | `RTCPeerConnection`, `getDisplayMedia`, `<video>` in `WebElementView` |
+| WebRTC, web | browser WebRTC through Wasm interop | `RTCPeerConnection`, `getDisplayMedia`, `<video>` in `HtmlElementView` |
 | Settings | multiplatform-settings | |
 | QR codes | qrcode-kotlin | scanning stays Android only |
-| Navigation, view models | JetBrains navigation-compose, lifecycle-viewmodel | |
+| Navigation | a small back stack in `App` | |
 
 `webrtc-kmp` was considered and rejected: no desktop target, no screen capture on the web,
 and its last release (WebRTC M125) is a year old.
@@ -68,6 +73,15 @@ An Android host maps pointer input to gestures; a desktop host maps touches to m
   the web embeds a `<video>` element.
 - Desktop system audio capture is not part of the first version; the browser can share tab or
   system audio through `getDisplayMedia`.
+
+## Web notes
+
+- An HTML element is always drawn above the Compose canvas. Screens that would put controls or
+  dialogs over the video use `PlatformUi.canOverlayVideo`: on the web the viewer keeps its
+  controls in a bar above the picture and the host hides the preview while a dialog is open.
+- Screens that assume a LAN (nearby devices, manual address, Wi-Fi hints) check for the
+  matching service in `AppServices` and are left out of the web build.
+- The wasm bundle is about 37 MB uncompressed (Skia and the app), so serve it compressed.
 
 ## iOS
 

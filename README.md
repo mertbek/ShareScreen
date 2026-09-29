@@ -12,6 +12,28 @@ Requires JDK 17 or newer and, for the Android app, the Android SDK (`local.prope
 ```
 ./gradlew :desktopApp:run
 ./gradlew :webApp:wasmJsBrowserDevelopmentRun
-./gradlew :androidApp:assembleDebug
-./gradlew :shared:desktopTest :server:test
+./gradlew :androidApp:assembleFullDebug
+./gradlew :signaling:allTests :core:allTests :server:test :lan:test :shared:desktopTest :desktopApp:jvmTest
 ```
+
+The web build for hosting comes from `./gradlew :webApp:wasmJsBrowserDistribution`.
+
+## Android editions
+
+- `full` can be controlled from another device through an accessibility service.
+- `lite` leaves the service out. It shares, watches and controls other devices, and installs
+  from a download link on phones where Play Protect blocks accessibility apps.
+
+Release builds are signed with the key named in `~/.sharescreen/keystore.properties` (or the
+file in `SHARESCREEN_KEYSTORE_PROPERTIES`), and fall back to the debug key without it.
+`-Pabis=arm64-v8a` limits the native libraries for a smaller APK.
+
+## Platforms
+
+| | Share | Watch | Be controlled |
+|---|---|---|---|
+| Android | yes | yes | yes (`full`) |
+| Desktop | yes | yes | yes |
+| Web | yes, over the internet | yes, over the internet | no |
+
+iOS needs macOS and Xcode and is not part of this repository yet.
