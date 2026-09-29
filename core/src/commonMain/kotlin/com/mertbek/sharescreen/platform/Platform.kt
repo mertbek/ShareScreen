@@ -47,6 +47,10 @@ interface InputInjector {
 }
 
 interface ScreenSource {
+    var onEnded: (() -> Unit)?
+        get() = null
+        set(_) = Unit
+
     suspend fun start(quality: VideoQuality, shareAudio: Boolean, wholeScreenOnly: Boolean): CapturedMedia?
     fun stop()
 }

@@ -13,6 +13,10 @@ import kotlinx.coroutines.launch
 class HostController(private val services: AppServices) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    init {
+        services.screenSource?.onEnded = ::stop
+    }
+
     private val _media = MutableStateFlow<CapturedMedia?>(null)
     val media: StateFlow<CapturedMedia?> = _media.asStateFlow()
 

@@ -66,6 +66,9 @@ kotlin {
             api(libs.stream.webrtc.android)
             implementation(libs.androidx.core.ktx)
         }
+        wasmJsMain.dependencies {
+            implementation(libs.kotlinx.serialization.json)
+        }
         val desktopTest by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
