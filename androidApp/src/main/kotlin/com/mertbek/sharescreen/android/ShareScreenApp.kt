@@ -50,6 +50,7 @@ class ShareScreenApp : Application() {
             lanAdvertiser = NsdAdvertiser(this),
             lanBrowser = NsdBrowser(this, addresses),
             inputInjector = inputInjector,
+            versionName = BuildConfig.VERSION_NAME,
         )
     }
 

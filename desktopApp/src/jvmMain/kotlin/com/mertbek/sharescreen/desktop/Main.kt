@@ -41,6 +41,7 @@ private fun createServices(): AppServices {
         lanAdvertiser = JmDnsAdvertiser(addresses),
         lanBrowser = JmDnsBrowser(addresses),
         inputInjector = DesktopInputInjector(),
+        versionName = ServerConfig.versionName,
     )
 }
 

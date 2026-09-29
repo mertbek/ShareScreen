@@ -35,6 +35,7 @@ private fun createServices() = AppServices(
     settings = SettingsRepository(StorageSettings(), ServerConfig.defaultServer),
     ui = WebUi(),
     screenSource = WebScreenSource(),
+    versionName = ServerConfig.versionName,
 )
 
 @OptIn(ExperimentalComposeUiApi::class)

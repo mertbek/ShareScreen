@@ -10,7 +10,7 @@ plugins {
 
 apply(from = rootProject.file("gradle/server-config.gradle.kts"))
 
-val appVersion = "0.1.0"
+val appVersion = providers.gradleProperty("sharescreen.version").get()
 val generateServerConfig = extra["generateServerConfig"] as TaskProvider<*>
 
 kotlin {

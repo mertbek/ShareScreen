@@ -97,7 +97,7 @@ fun App(
                 Screen.Settings -> SettingsScreen(
                     repository = services.settings,
                     canBeControlled = services.canBeControlled,
-                    versionName = APP_VERSION,
+                    versionName = services.versionName,
                     privacyUrl = services.settings.settings.value.defaultServer?.let {
                         "https://" + it.removePrefix("wss://").removePrefix("ws://") + "/privacy"
                     },
@@ -127,8 +127,6 @@ private fun ConfirmLinkDialog(link: ConnectLink, onConfirm: () -> Unit, onDismis
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     )
 }
-
-const val APP_VERSION = "0.1.0"
 
 sealed interface Screen {
     val depth: Int
