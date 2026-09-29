@@ -1,0 +1,24 @@
+<resources>
+    <string name="notification_channel_sharing">Screen sharing</string>
+    <string name="notification_channel_join_requests">Watch requests</string>
+    <string name="notification_sharing_title">Your screen is being shared</string>
+    <string name="notification_action_stop">Stop</string>
+    <string name="control_service_label">ShareScreen remote control</string>
+    <string name="control_service_description">Lets a viewer you approve tap, swipe and type on this device while you share your screen with ShareScreen. It does nothing unless you have given someone control, and it only reads the text field that is being typed into remotely.</string>
+    <string name="host_control_restricted_hint">If the switch is greyed out, open App info for ShareScreen, tap ⋮ and choose Allow restricted settings.</string>
+    <string name="notification_channel_control_requests">Control requests</string>
+    <string name="notification_controlled_title">%1$s is controlling your device</string>
+    <string name="control_disclosure_title">How remote control uses Accessibility</string>
+    <string name="control_disclosure_message">ShareScreen\'s accessibility service lets a viewer you approve tap, swipe and type on this device while you share your screen.\n\nIt only acts while you have given someone control. To type, it reads the text field being typed into; it does not collect, store or send anything else from your screen.\n\nYou can turn it off at any time in the accessibility settings.</string>
+    <string name="control_disclosure_agree">Agree and continue</string>
+    <string name="app_name">ShareScreen</string>
+    <string name="host_join_request_title">Watch request</string>
+    <string name="host_join_request_message">%1$s wants to watch your screen.</string>
+    <string name="host_join_request_message_internet">%1$s wants to watch your screen over the internet.</string>
+    <string name="host_join_request_allow">Allow</string>
+    <string name="host_join_request_deny">Deny</string>
+    <string name="host_control_stop">Take back control</string>
+    <string name="host_control_request_title">Control request</string>
+    <string name="host_control_request_message">%1$s wants to control this device. They will be able to tap, swipe and type as if they were holding it.</string>
+    <string name="scan_prompt">Scan the QR code shown on the sharing device</string>
+</resources>

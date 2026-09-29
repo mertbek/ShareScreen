@@ -1,0 +1,24 @@
+<resources>
+    <string name="notification_channel_sharing">Ekran paylaşımı</string>
+    <string name="notification_channel_join_requests">İzleme istekleri</string>
+    <string name="notification_sharing_title">Ekranın paylaşılıyor</string>
+    <string name="notification_action_stop">Durdur</string>
+    <string name="control_service_label">ShareScreen uzaktan kontrol</string>
+    <string name="control_service_description">Ekranını ShareScreen ile paylaşırken onayladığın bir izleyicinin bu cihazda dokunmasını, kaydırmasını ve yazmasını sağlar. Birine kontrol vermediğin sürece hiçbir şey yapmaz ve yalnızca uzaktan yazılan metin alanını okur.</string>
+    <string name="host_control_restricted_hint">Anahtar gri görünüyorsa ShareScreen\'in Uygulama bilgileri sayfasını aç, ⋮ simgesine dokun ve Kısıtlanmış ayarlara izin ver\'i seç.</string>
+    <string name="notification_channel_control_requests">Kontrol istekleri</string>
+    <string name="notification_controlled_title">%1$s cihazını kontrol ediyor</string>
+    <string name="control_disclosure_title">Uzaktan kontrol erişilebilirliği nasıl kullanır</string>
+    <string name="control_disclosure_message">ShareScreen\'in erişilebilirlik hizmeti, ekranını paylaşırken onayladığın bir izleyicinin bu cihazda dokunmasını, kaydırmasını ve yazmasını sağlar.\n\nYalnızca birine kontrol verdiğinde çalışır. Yazabilmek için yazılan metin alanını okur; ekranındaki başka hiçbir şeyi toplamaz, saklamaz veya göndermez.\n\nErişilebilirlik ayarlarından istediğin an kapatabilirsin.</string>
+    <string name="control_disclosure_agree">Kabul et ve devam et</string>
+    <string name="app_name">ShareScreen</string>
+    <string name="host_join_request_title">İzleme isteği</string>
+    <string name="host_join_request_message">%1$s ekranını izlemek istiyor.</string>
+    <string name="host_join_request_message_internet">%1$s ekranını internet üzerinden izlemek istiyor.</string>
+    <string name="host_join_request_allow">İzin ver</string>
+    <string name="host_join_request_deny">Reddet</string>
+    <string name="host_control_stop">Kontrolü geri al</string>
+    <string name="host_control_request_title">Kontrol isteği</string>
+    <string name="host_control_request_message">%1$s bu cihazı kontrol etmek istiyor. Cihaz elindeymiş gibi dokunabilecek, kaydırabilecek ve yazabilecek.</string>
+    <string name="scan_prompt">Paylaşım yapan cihazdaki QR kodu okut</string>
+</resources>
