@@ -10,3 +10,4 @@ captures
 .cxx
 node_modules
 *.apk
+hs_err_pid*.log

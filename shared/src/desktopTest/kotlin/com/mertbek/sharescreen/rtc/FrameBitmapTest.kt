@@ -22,11 +22,12 @@ class FrameBitmapTest {
         frameBitmap.onVideoFrame(frame)
         frame.release()
 
-        val image = assertNotNull(frameBitmap.image.value)
-        assertEquals(WIDTH, image.width)
-        assertEquals(HEIGHT, image.height)
+        val published = assertNotNull(frameBitmap.frame.value)
+        assertEquals(WIDTH, published.width)
+        assertEquals(HEIGHT, published.height)
         val pixels = IntArray(WIDTH * HEIGHT)
-        image.readPixels(pixels)
+        assertNotNull(frameBitmap.draw { it.readPixels(pixels) })
+        frameBitmap.close()
         val pixel = pixels[HEIGHT / 2 * WIDTH + WIDTH / 2]
         val red = pixel shr 16 and 0xFF
         val green = pixel shr 8 and 0xFF
