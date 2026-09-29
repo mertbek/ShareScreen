@@ -19,4 +19,5 @@ include(":shared")
 include(":desktopApp")
 include(":webApp")
 include(":androidApp")
+include(":server")
 
