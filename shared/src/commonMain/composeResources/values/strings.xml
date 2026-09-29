@@ -68,7 +68,7 @@
     <string name="settings_server_title">Own server (optional)</string>
     <string name="settings_server_description">ShareScreen uses its own server to introduce devices to each other; the picture and sound never pass through it. Enter the address of a server of your own to use that instead, or leave empty.</string>
     <string name="settings_server_label">Server address</string>
-    <string name="settings_server_invalid">Enter an address like share.example.com or wss://share.example.com</string>
+    <string name="settings_server_invalid">Enter an address like share.example.com or wss://share.example.com. Plain ws:// works only on your own network.</string>
     <string name="settings_server_save">Save</string>
     <string name="host_join_request_title">Watch request</string>
     <string name="host_join_request_message">%1$s wants to watch your screen.</string>

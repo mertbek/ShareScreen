@@ -50,6 +50,8 @@ class ConnectLinkTest {
             "sharescreen://other?h=192.168.1.2&p=5000&pin=123456",
             "sharescreen://connect?h=192.168.1.300&p=5000&pin=123456",
             "sharescreen://connect?h=example.com&p=5000&pin=123456",
+            "sharescreen://connect?h=8.8.8.8&p=5000&pin=123456",
+            "sharescreen://join?s=ws%3A%2F%2Fevil.example.com&r=ABC234&pin=123456",
             "sharescreen://connect?h=192.168.1.2&p=70000&pin=123456",
             "sharescreen://connect?h=192.168.1.2&p=5000&pin=12345",
             "sharescreen://connect?h=192.168.1.2&p=5000&pin=12a456",

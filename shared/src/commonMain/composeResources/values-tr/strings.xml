@@ -66,7 +66,7 @@
     <string name="settings_server_title">Kendi sunucun (isteğe bağlı)</string>
     <string name="settings_server_description">ShareScreen cihazları birbirine tanıştırmak için kendi sunucusunu kullanır; görüntü ve ses hiçbir zaman ondan geçmez. Onun yerine kendi sunucunun adresini girebilirsin, ya da boş bırak.</string>
     <string name="settings_server_label">Sunucu adresi</string>
-    <string name="settings_server_invalid">share.example.com veya wss://share.example.com gibi bir adres gir</string>
+    <string name="settings_server_invalid">share.example.com veya wss://share.example.com gibi bir adres gir. Düz ws:// yalnızca kendi ağında çalışır.</string>
     <string name="settings_server_save">Kaydet</string>
     <string name="host_join_request_title">İzleme isteği</string>
     <string name="host_join_request_message">%1$s ekranını izlemek istiyor.</string>

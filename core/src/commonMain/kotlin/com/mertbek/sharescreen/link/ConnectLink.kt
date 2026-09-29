@@ -60,7 +60,7 @@ sealed interface ConnectLink {
             val name = params["n"]?.trim()?.takeIf { it.isNotEmpty() }
             return when (uri.host) {
                 LAN_AUTHORITY -> {
-                    val host = params["h"]?.takeIf(::isIpv4Address) ?: return null
+                    val host = params["h"]?.takeIf(::isPrivateIpv4) ?: return null
                     val port = params["p"]?.toIntOrNull()?.takeIf { it in 1..65535 } ?: return null
                     Lan(host, port, pin, name)
                 }

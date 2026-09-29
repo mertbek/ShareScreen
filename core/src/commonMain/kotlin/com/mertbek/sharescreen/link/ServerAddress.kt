@@ -18,7 +18,9 @@ object ServerAddress {
         }
         val address = "$webSocketScheme://$rest"
         val uri = parseUri(address) ?: return null
-        return address.takeIf { !uri.host.isNullOrEmpty() }
+        val host = uri.host?.takeIf { it.isNotEmpty() } ?: return null
+        if (webSocketScheme == "ws" && !isLocalHostName(host)) return null
+        return address
     }
 
     fun signalingUrl(server: String): String = server + SIGNALING_PATH
