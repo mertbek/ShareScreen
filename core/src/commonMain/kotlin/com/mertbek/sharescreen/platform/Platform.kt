@@ -18,6 +18,14 @@ interface LanAdvertiser {
     fun unregister()
 }
 
+data class DiscoveredHost(val name: String, val host: String, val port: Int)
+
+interface LanBrowser {
+    val hosts: StateFlow<List<DiscoveredHost>>
+    fun start()
+    fun stop()
+}
+
 interface LanServer {
     suspend fun start(hostSecret: String): Int
     suspend fun stop()

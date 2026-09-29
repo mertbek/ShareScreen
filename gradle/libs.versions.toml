@@ -42,6 +42,7 @@ qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrco
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "settings" }
 multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "settings" }
 webrtc-java = { module = "dev.onvoid.webrtc:webrtc-java", version.ref = "webrtcJava" }
+jmdns = { module = "org.jmdns:jmdns", version = "3.6.3" }
 stream-webrtc-android = { module = "io.getstream:stream-webrtc-android", version.ref = "streamWebrtc" }
 jetbrains-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 jetbrains-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }

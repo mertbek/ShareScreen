@@ -22,4 +22,5 @@ include(":desktopApp")
 include(":webApp")
 include(":androidApp")
 include(":server")
+include(":lan")
 
