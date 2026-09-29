@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import com.mertbek.sharescreen.resources.*
 import androidx.compose.runtime.collectAsState
 import com.mertbek.sharescreen.app.AppServices
+import com.mertbek.sharescreen.app.QrScan
 import com.mertbek.sharescreen.link.ConnectLink
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.compose.resources.stringResource
@@ -92,12 +93,12 @@ fun DiscoverScreen(
     var selectedHost by remember { mutableStateOf<DiscoveredHost?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val invalidQrMessage = stringResource(Res.string.discover_qr_invalid)
-    var qrError by remember { mutableStateOf(false) }
-    LaunchedEffect(qrError) {
-        if (qrError) {
-            snackbarHostState.showSnackbar(invalidQrMessage)
-            qrError = false
-        }
+    val cameraDeniedMessage = stringResource(Res.string.discover_camera_denied)
+    var qrProblem by remember { mutableStateOf<QrScan?>(null) }
+    LaunchedEffect(qrProblem) {
+        val problem = qrProblem ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(if (problem == QrScan.CameraDenied) cameraDeniedMessage else invalidQrMessage)
+        qrProblem = null
     }
 
     DisposableEffect(browser) {
@@ -106,7 +107,9 @@ fun DiscoverScreen(
     }
 
     val scanQrCode = {
-        services.ui.scanQr { link -> if (link != null) onConnect(link) else qrError = true }
+        services.ui.scanQr { result ->
+            if (result is QrScan.Found) onConnect(result.link) else qrProblem = result
+        }
     }
 
     Scaffold(

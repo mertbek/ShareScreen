@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -20,10 +21,31 @@ import com.mertbek.sharescreen.ui.viewer.ViewerScreen
 import com.mertbek.sharescreen.ui.theme.ShareScreenTheme
 
 @Composable
-fun App(services: AppServices) {
+fun App(
+    services: AppServices,
+    incomingLink: ConnectLink? = null,
+    onIncomingLinkHandled: () -> Unit = {},
+    showHost: Boolean = false,
+    onShowHostHandled: () -> Unit = {},
+) {
     ShareScreenTheme {
         val stack = remember { mutableStateListOf<Screen>(Screen.Home) }
         val current = stack.last()
+        LaunchedEffect(incomingLink) {
+            if (incomingLink == null) return@LaunchedEffect
+            stack.retainAll { it.depth < 2 }
+            stack += Screen.Viewer(incomingLink)
+            onIncomingLinkHandled()
+        }
+        LaunchedEffect(showHost) {
+            if (!showHost) return@LaunchedEffect
+            if (stack.last() != Screen.Host) {
+                stack.clear()
+                stack += Screen.Home
+                stack += Screen.Host
+            }
+            onShowHostHandled()
+        }
         services.ui.BackHandler(enabled = stack.size > 1) { stack.removeLast() }
 
         AnimatedContent(

@@ -6,6 +6,12 @@ import com.mertbek.sharescreen.control.Zoom
 import com.mertbek.sharescreen.link.ConnectLink
 import com.mertbek.sharescreen.rtc.RemoteVideo
 
+sealed interface QrScan {
+    data class Found(val link: ConnectLink) : QrScan
+    data object Invalid : QrScan
+    data object CameraDenied : QrScan
+}
+
 interface PlatformUi {
     @Composable
     fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (width: Int, height: Int) -> Unit)
@@ -18,7 +24,7 @@ interface PlatformUi {
 
     val canScanQr: Boolean get() = false
 
-    fun scanQr(onResult: (ConnectLink?) -> Unit) = Unit
+    fun scanQr(onResult: (QrScan) -> Unit) = Unit
 
     fun share(text: String) = Unit
 
