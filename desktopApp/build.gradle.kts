@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             implementation(project(":shared"))
+            implementation(project(":lan"))
             implementation(compose.desktop.currentOs)
         }
     }

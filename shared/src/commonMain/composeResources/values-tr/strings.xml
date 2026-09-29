@@ -1,18 +1,18 @@
 <resources>
     <string name="action_back">Geri</string>
     <string name="action_cancel">İptal</string>
-
+'
     <string name="home_hero_title">Bir ekran paylaş. Her yerden izlensin.</string>
-    <string name="home_hero_text">Ekranını sesiyle, Wi-Fi\'ındaki bir arkadaşına ya da dünyanın öbür ucundakine göster.</string>
+    <string name="home_hero_text">Ekranını sesiyle, Wi-Fi'ındaki bir arkadaşına ya da dünyanın öbür ucundakine göster.</string>
     <string name="home_how_title">Nasıl çalışır</string>
-    <string name="home_how_connect">Aynı Wi-Fi\'daki cihazlar birbirini bulur; diğerleri için davet bağlantısı gönder.</string>
+    <string name="home_how_connect">Aynı Wi-Fi'daki cihazlar birbirini bulur; diğerleri için davet bağlantısı gönder.</string>
     <string name="home_how_private">Görüntü ve ses, şifreli olarak doğrudan cihazlar arasında akar.</string>
     <string name="home_how_control">Her izleyiciyi ve cihazını kontrol etme isteklerini sen onaylarsın.</string>
     <string name="home_share_title">Ekranımı paylaş</string>
     <string name="home_share_subtitle">Yakındaki cihazlar bu ekranı izleyebilsin</string>
     <string name="home_watch_title">Bir ekranı izle</string>
     <string name="home_watch_subtitle">Bu ağda paylaşım yapan bir cihaz bul</string>
-
+'
     <string name="host_idle_description">Paylaşımı başlattığında bu ağdaki cihazlar ekranını izleyebilir. Sistem önce senden izin isteyecek.</string>
     <string name="host_start">Paylaşımı başlat</string>
     <string name="host_stop">Paylaşımı durdur</string>
@@ -31,7 +31,7 @@
     <string name="host_qr_hint">Diğer cihazda ShareScreen ile ya da kamerayla okut</string>
     <string name="host_invite_share">Davet bağlantısını paylaş</string>
     <string name="host_invite_message">ShareScreen ile ekranımı izle: %1$s</string>
-    <string name="host_no_network">Wi-Fi\'a bağlı değilsin. İzleyiciler aynı ağda veya hotspot\'ta olmalı.</string>
+    <string name="host_no_network">Wi-Fi'a bağlı değilsin. İzleyiciler aynı ağda veya hotspot'ta olmalı.</string>
     <string name="host_failed">Paylaşım hazırlanamadı: %1$s</string>
     <string name="host_viewers_title">İzleyiciler (%1$d)</string>
     <string name="host_no_viewers">Henüz izleyen yok.</string>
@@ -44,11 +44,11 @@
     <string name="host_audio_shared">Cihaz sesi paylaşılıyor</string>
     <string name="host_audio_not_shared">Ses paylaşılmıyor. Cihaz sesini paylaşmak için bir dahaki sefere mikrofon iznini ver.</string>
     <string name="host_audio_off">Ses paylaşımı ayarlarda kapalı.</string>
-
+'
     <string name="settings_title">Ayarlar</string>
     <string name="settings_quality_title">Görüntü kalitesi</string>
     <string name="settings_quality_low">Düşük (480p)</string>
-    <string name="settings_quality_low_description">Yoğun veya zayıf Wi-Fi\'da en akıcısı</string>
+    <string name="settings_quality_low_description">Yoğun veya zayıf Wi-Fi'da en akıcısı</string>
     <string name="settings_quality_standard">Standart (720p)</string>
     <string name="settings_quality_standard_description">Net yazılar, çoğu ağa uygun</string>
     <string name="settings_quality_high">Yüksek (1080p)</string>
@@ -62,7 +62,7 @@
     <string name="settings_privacy">Gizlilik politikası</string>
     <string name="settings_applies_next_time">Değişiklikler paylaşımı bir sonraki başlatışında geçerli olur.</string>
     <string name="settings_internet_title">İnternet üzerinden paylaş ve katıl</string>
-    <string name="settings_internet_description">Başka ağlardaki cihazların oda koduyla ya da davet bağlantısıyla bağlanmasını sağlar. Kapalıyken yalnızca aynı Wi-Fi\'daki cihazlar bağlanabilir.</string>
+    <string name="settings_internet_description">Başka ağlardaki cihazların oda koduyla ya da davet bağlantısıyla bağlanmasını sağlar. Kapalıyken yalnızca aynı Wi-Fi'daki cihazlar bağlanabilir.</string>
     <string name="settings_server_title">Kendi sunucun (isteğe bağlı)</string>
     <string name="settings_server_description">ShareScreen cihazları birbirine tanıştırmak için kendi sunucusunu kullanır; görüntü ve ses hiçbir zaman ondan geçmez. Onun yerine kendi sunucunun adresini girebilirsin, ya da boş bırak.</string>
     <string name="settings_server_label">Sunucu adresi</string>
@@ -73,29 +73,29 @@
     <string name="host_join_request_message_internet">%1$s ekranını internet üzerinden izlemek istiyor.</string>
     <string name="host_join_request_allow">İzin ver</string>
     <string name="host_join_request_deny">Reddet</string>
-
+'
     <string name="discover_nearby_title">Yakındaki cihazlar</string>
-    <string name="discover_nearby_empty">Bu ağda paylaşım yapan cihazlar aranıyor. İki cihaz da aynı Wi-Fi\'da veya hotspot\'ta olmalı.</string>
-    <string name="discover_pin_prompt">Paylaşım yapan cihazda görünen PIN\'i gir.</string>
+    <string name="discover_nearby_empty">Bu ağda paylaşım yapan cihazlar aranıyor. İki cihaz da aynı Wi-Fi'da veya hotspot'ta olmalı.</string>
+    <string name="discover_pin_prompt">Paylaşım yapan cihazda görünen PIN'i gir.</string>
     <string name="discover_scan_qr">QR kodu tara</string>
     <string name="discover_qr_prompt">Paylaşım yapan cihazdaki QR kodu okut</string>
     <string name="discover_qr_invalid">Bu bir ShareScreen QR kodu değil.</string>
     <string name="discover_camera_denied">QR taramak için kamera izni gerekiyor. Listeden ya da adres ve PIN ile de bağlanabilirsin.</string>
     <string name="discover_manual_title">Ya da elle gir</string>
     <string name="discover_internet_title">İnternet üzerinden katıl</string>
-    <string name="discover_internet_description">Paylaşım yapan cihazda görünen oda kodunu ve PIN\'i gir.</string>
+    <string name="discover_internet_description">Paylaşım yapan cihazda görünen oda kodunu ve PIN'i gir.</string>
     <string name="discover_internet_no_server">İnternet paylaşımı kapalı. Başka ağlardaki cihazlara katılmak için ayarlardan aç.</string>
     <string name="discover_room_code_label">Oda kodu</string>
     <string name="discover_internet_join">Katıl</string>
-    <string name="discover_manual_description">Paylaşım yapan cihazın ekranında görünen adresi ve PIN\'i gir.</string>
+    <string name="discover_manual_description">Paylaşım yapan cihazın ekranında görünen adresi ve PIN'i gir.</string>
     <string name="discover_ip_label">IP adresi</string>
     <string name="discover_port_label">Port</string>
     <string name="discover_pin_label">PIN</string>
     <string name="discover_connect">Bağlan</string>
-
+'
     <string name="link_confirm_title">%1$s izlensin mi?</string>
     <string name="link_confirm_message">Ekranını izlemek için %1$s adresine bağlanılacak. Önce o cihaz izin isteyecek.</string>
-
+'
     <string name="viewer_connecting">Bağlanılıyor…</string>
     <string name="viewer_waiting_approval">Diğer cihazın izin vermesi bekleniyor…</string>
     <string name="viewer_negotiating">Yayın başlatılıyor…</string>
@@ -115,8 +115,8 @@
     <string name="viewer_end_host_ended">Ekran paylaşımı sona erdi.</string>
     <string name="viewer_end_connection_lost">Bağlantı koptu.</string>
     <string name="viewer_end_unsupported_version">Diğer cihazdaki uygulama sürümü uyumsuz.</string>
-
-
+'
+'
     <string name="settings_control_title">Uzaktan kontrole izin ver</string>
     <string name="settings_control_description">İzleyiciler bu cihazı kontrol etmek isteyebilir. Her isteği sen onaylarsın ve kontrolü istediğin an geri alabilirsin. Her zaman tüm ekran paylaşılır.</string>
     <string name="host_control_title">Uzaktan kontrol</string>
@@ -128,7 +128,7 @@
     <string name="host_viewer_controlling">kontrol ediyor</string>
     <string name="host_control_request_title">Kontrol isteği</string>
     <string name="host_control_request_message">%1$s bu cihazı kontrol etmek istiyor. Cihaz elindeymiş gibi dokunabilecek, kaydırabilecek ve yazabilecek.</string>
-
+'
     <string name="viewer_control_request">Kontrol iste</string>
     <string name="viewer_control_waiting">Diğer cihazın kontrole izin vermesi bekleniyor…</string>
     <string name="viewer_control_release">Kontrolü bırak</string>

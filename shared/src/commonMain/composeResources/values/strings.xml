@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">ShareScreen</string>
-
+'
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>
-
+'
     <string name="home_hero_title">Share a screen. Watch it anywhere.</string>
     <string name="home_hero_text">Show your screen, with sound, to a friend on your Wi-Fi or across the world.</string>
     <string name="home_how_title">How it works</string>
@@ -14,7 +14,7 @@
     <string name="home_share_subtitle">Let nearby devices watch this screen</string>
     <string name="home_watch_title">Watch a screen</string>
     <string name="home_watch_subtitle">Find a device that is sharing on this network</string>
-
+'
     <string name="host_idle_description">Start sharing to let devices on this network watch your screen. Your system will ask for your permission first.</string>
     <string name="host_start">Start sharing</string>
     <string name="host_stop">Stop sharing</string>
@@ -46,7 +46,7 @@
     <string name="host_audio_shared">Device sound is shared</string>
     <string name="host_audio_not_shared">Sound is not shared. Allow microphone access next time to share device sound.</string>
     <string name="host_audio_off">Sound sharing is turned off in settings.</string>
-
+'
     <string name="settings_title">Settings</string>
     <string name="settings_quality_title">Picture quality</string>
     <string name="settings_quality_low">Low (480p)</string>
@@ -75,7 +75,7 @@
     <string name="host_join_request_message_internet">%1$s wants to watch your screen over the internet.</string>
     <string name="host_join_request_allow">Allow</string>
     <string name="host_join_request_deny">Deny</string>
-
+'
     <string name="discover_nearby_title">Nearby devices</string>
     <string name="discover_nearby_empty">Looking for devices sharing on this network. Both devices must be on the same Wi-Fi or hotspot.</string>
     <string name="discover_pin_prompt">Enter the PIN shown on the sharing device.</string>
@@ -94,10 +94,10 @@
     <string name="discover_port_label">Port</string>
     <string name="discover_pin_label">PIN</string>
     <string name="discover_connect">Connect</string>
-
+'
     <string name="link_confirm_title">Watch %1$s?</string>
     <string name="link_confirm_message">Connect to %1$s to watch its screen. It will ask for permission first.</string>
-
+'
     <string name="viewer_connecting">Connecting…</string>
     <string name="viewer_waiting_approval">Waiting for the other device to allow watching…</string>
     <string name="viewer_negotiating">Starting the stream…</string>
@@ -117,8 +117,8 @@
     <string name="viewer_end_host_ended">Screen sharing has ended.</string>
     <string name="viewer_end_connection_lost">The connection was lost.</string>
     <string name="viewer_end_unsupported_version">The other device runs an incompatible version of the app.</string>
-
-
+'
+'
     <string name="settings_control_title">Allow remote control</string>
     <string name="settings_control_description">Viewers can ask to control this device. You approve each request and can take control back at any time. The whole screen is always shared.</string>
     <string name="host_control_title">Remote control</string>
@@ -130,7 +130,7 @@
     <string name="host_viewer_controlling">controlling</string>
     <string name="host_control_request_title">Control request</string>
     <string name="host_control_request_message">%1$s wants to control this device. They will be able to tap, swipe and type as if they were holding it.</string>
-
+'
     <string name="viewer_control_request">Ask for control</string>
     <string name="viewer_control_waiting">Waiting for the other device to allow control…</string>
     <string name="viewer_control_release">Stop controlling</string>
@@ -140,7 +140,7 @@
     <string name="viewer_nav_home">Home</string>
     <string name="viewer_nav_recents">Recent apps</string>
     <string name="viewer_keyboard">Keyboard</string>
-    <string name="viewer_paste">Paste this device\'s clipboard</string>
+    <string name="viewer_paste">Paste this device's clipboard</string>
     <string name="viewer_keyboard_hint">Type here to type on the other device</string>
     <string name="viewer_show_details">Show stream details</string>
     <string name="viewer_zoom_mode">Zoom and move the picture</string>
