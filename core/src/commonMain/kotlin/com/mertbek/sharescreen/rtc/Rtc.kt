@@ -14,7 +14,7 @@ data class IceCandidate(val sdpMid: String?, val sdpMLineIndex: Int, val candida
 
 enum class PeerConnectionState { NEW, CONNECTING, CONNECTED, DISCONNECTED, FAILED, CLOSED }
 
-data class StreamStats(val width: Int, val height: Int, val framesPerSecond: Int?, val roundTripMillis: Int?)
+data class StreamInfo(val width: Int, val height: Int, val framesPerSecond: Int?, val roundTripMillis: Int?)
 
 interface CapturedMedia {
     val width: Int
@@ -60,11 +60,10 @@ interface RtcPeer {
     fun createDataChannel(label: String): RtcDataChannel
     fun addMedia(media: CapturedMedia)
     fun restartIce()
-    suspend fun stats(): StreamStats?
+    suspend fun stats(): StreamInfo?
     fun close()
 }
 
 interface RtcEngine {
-    val logsStats: Boolean
     fun createPeer(iceServers: List<IceServerConfig>): RtcPeer
 }
