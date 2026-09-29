@@ -16,5 +16,18 @@ java {
 }
 
 dependencies {
+    api(project(":signaling"))
+    api(libs.ktor.server.core)
+    api(libs.ktor.server.cio)
+    api(libs.ktor.server.websockets)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
+
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.ktor.client.websockets)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
