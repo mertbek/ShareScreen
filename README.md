@@ -26,7 +26,8 @@ The web build for hosting comes from `./gradlew :webApp:wasmJsBrowserDistributio
 
 Release builds are signed with the key named in `~/.sharescreen/keystore.properties` (or the
 file in `SHARESCREEN_KEYSTORE_PROPERTIES`), and fall back to the debug key without it.
-`-Pabis=arm64-v8a` limits the native libraries for a smaller APK.
+`-Pabis=arm64-v8a` limits the native libraries for a smaller APK, and `-PappIdSuffix=.test`
+appends a suffix to the application id so a build installs next to another one.
 
 ## Platforms
 
