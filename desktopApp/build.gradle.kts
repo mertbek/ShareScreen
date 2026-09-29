@@ -10,6 +10,10 @@ kotlin {
     jvm()
 
     sourceSets {
+        jvmTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.core)
+        }
         jvmMain.dependencies {
             implementation(project(":shared"))
             implementation(project(":lan"))

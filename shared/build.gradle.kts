@@ -67,7 +67,7 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
-                implementation(libs.webrtc.java)
+                api(libs.webrtc.java)
                 runtimeOnly("dev.onvoid.webrtc:webrtc-java:${libs.versions.webrtcJava.get()}:$webrtcNatives")
             }
         }
