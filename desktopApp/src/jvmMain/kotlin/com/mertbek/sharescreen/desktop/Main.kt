@@ -8,6 +8,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.mertbek.sharescreen.app.App
 import com.mertbek.sharescreen.app.AppServices
+import com.mertbek.sharescreen.config.ServerConfig
 import com.mertbek.sharescreen.control.DesktopInputInjector
 import com.mertbek.sharescreen.lan.EmbeddedLanServer
 import com.mertbek.sharescreen.lan.JmDnsAdvertiser
@@ -29,7 +30,10 @@ private fun createServices(): AppServices {
     return AppServices(
         rtc = rtc,
         deviceName = DeviceName(name),
-        settings = SettingsRepository(PreferencesSettings(Preferences.userRoot().node("com/mertbek/sharescreen"))),
+        settings = SettingsRepository(
+            PreferencesSettings(Preferences.userRoot().node("com/mertbek/sharescreen")),
+            ServerConfig.defaultServer,
+        ),
         ui = DesktopUi(),
         screenSource = DesktopScreenSource(DesktopScreenCapture(rtc)),
         lanServer = EmbeddedLanServer(),

@@ -57,7 +57,6 @@ import com.mertbek.sharescreen.resources.*
 import com.mertbek.sharescreen.settings.SettingsRepository
 import androidx.compose.runtime.collectAsState
 import com.mertbek.sharescreen.link.ServerAddress
-import com.mertbek.sharescreen.settings.DEFAULT_SERVER
 import com.mertbek.sharescreen.settings.VideoQuality
 import com.mertbek.sharescreen.ui.components.IconBadge
 import com.mertbek.sharescreen.ui.components.ScreenPadding
@@ -70,7 +69,7 @@ fun SettingsScreen(
     repository: SettingsRepository,
     canBeControlled: Boolean,
     versionName: String,
-    privacyUrl: String,
+    privacyUrl: String?,
     onOpenUrl: (String) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -147,7 +146,7 @@ fun SettingsScreen(
                     AnimatedVisibility(visible = settings.internetEnabled) {
                         Column {
                             HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                            CustomServer(saved = settings.customServer, onSave = saveCustomServer)
+                            CustomServer(saved = settings.customServer, defaultServer = settings.defaultServer, onSave = saveCustomServer)
                         }
                     }
                 }
@@ -233,7 +232,7 @@ private fun QualityOption(quality: VideoQuality, selected: Boolean, onSelect: ()
 }
 
 @Composable
-private fun CustomServer(saved: String?, onSave: (String) -> Boolean) {
+private fun CustomServer(saved: String?, defaultServer: String?, onSave: (String) -> Boolean) {
     var text by rememberSaveable(saved) { mutableStateOf(saved.orEmpty()) }
     var invalid by rememberSaveable { mutableStateOf(false) }
     val save = { invalid = !onSave(text) }
@@ -261,7 +260,7 @@ private fun CustomServer(saved: String?, onSave: (String) -> Boolean) {
                 invalid = false
             },
             label = { Text(stringResource(Res.string.settings_server_label)) },
-            placeholder = { Text(DEFAULT_SERVER.removePrefix("wss://")) },
+            placeholder = { Text(defaultServer?.removePrefix("wss://") ?: "example.com") },
             singleLine = true,
             isError = invalid,
             shape = MaterialTheme.shapes.medium,
@@ -283,7 +282,7 @@ private fun CustomServer(saved: String?, onSave: (String) -> Boolean) {
 }
 
 @Composable
-private fun AboutRows(versionName: String, privacyUrl: String, onOpenUrl: (String) -> Unit) {
+private fun AboutRows(versionName: String, privacyUrl: String?, onOpenUrl: (String) -> Unit) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         IconBadge(Icons.Outlined.Info, size = 44.dp)
         Spacer(Modifier.width(16.dp))
@@ -296,6 +295,7 @@ private fun AboutRows(versionName: String, privacyUrl: String, onOpenUrl: (Strin
             )
         }
     }
+    if (privacyUrl == null) return
     HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
     Row(
         modifier = Modifier

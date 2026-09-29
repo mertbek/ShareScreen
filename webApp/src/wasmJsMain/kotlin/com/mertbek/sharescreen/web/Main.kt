@@ -9,6 +9,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import com.mertbek.sharescreen.app.App
 import com.mertbek.sharescreen.app.AppServices
+import com.mertbek.sharescreen.config.ServerConfig
 import com.mertbek.sharescreen.link.ConnectLink
 import com.mertbek.sharescreen.platform.DeviceName
 import com.mertbek.sharescreen.rtc.WebRtcEngine
@@ -31,7 +32,7 @@ private fun deviceName(): String {
 private fun createServices() = AppServices(
     rtc = WebRtcEngine(),
     deviceName = DeviceName(deviceName()),
-    settings = SettingsRepository(StorageSettings()),
+    settings = SettingsRepository(StorageSettings(), ServerConfig.defaultServer),
     ui = WebUi(),
     screenSource = WebScreenSource(),
 )

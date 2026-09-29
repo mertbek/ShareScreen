@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.api.tasks.TaskProvider
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -7,7 +8,10 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
 }
 
+apply(from = rootProject.file("gradle/server-config.gradle.kts"))
+
 val appVersion = "0.1.0"
+val generateServerConfig = extra["generateServerConfig"] as TaskProvider<*>
 
 kotlin {
     jvm()
@@ -16,6 +20,9 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.core)
+        }
+        jvmMain {
+            kotlin.srcDir(generateServerConfig)
         }
         jvmMain.dependencies {
             implementation(project(":shared"))

@@ -39,7 +39,10 @@ class ShareScreenApp : Application() {
         AppServices(
             rtc = engine,
             deviceName = DeviceName(deviceName()),
-            settings = SettingsRepository(SharedPreferencesSettings(getSharedPreferences("settings", MODE_PRIVATE))),
+            settings = SettingsRepository(
+                SharedPreferencesSettings(getSharedPreferences("settings", MODE_PRIVATE)),
+                BuildConfig.DEFAULT_SERVER.ifEmpty { null },
+            ),
             ui = ui,
             screenSource = screenSource,
             lanServer = EmbeddedLanServer(),

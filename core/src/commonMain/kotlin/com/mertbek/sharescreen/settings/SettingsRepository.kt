@@ -6,8 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-const val DEFAULT_SERVER = "wss://server.example"
-
 enum class VideoQuality(val maxLongEdge: Int, val maxBitrateBps: Int) {
     LOW(maxLongEdge = 854, maxBitrateBps = 1_500_000),
     STANDARD(maxLongEdge = 1280, maxBitrateBps = 4_000_000),
@@ -19,12 +17,13 @@ data class SharingSettings(
     val shareAudio: Boolean = true,
     val internetEnabled: Boolean = true,
     val customServer: String? = null,
+    val defaultServer: String? = null,
     val allowRemoteControl: Boolean = false,
 ) {
-    val internetServer: String? get() = if (internetEnabled) customServer ?: DEFAULT_SERVER else null
+    val internetServer: String? get() = if (internetEnabled) customServer ?: defaultServer else null
 }
 
-class SettingsRepository(private val store: Settings) {
+class SettingsRepository(private val store: Settings, private val defaultServer: String? = null) {
 
     private val _settings = MutableStateFlow(read())
     val settings: StateFlow<SharingSettings> = _settings.asStateFlow()
@@ -53,6 +52,7 @@ class SettingsRepository(private val store: Settings) {
         shareAudio = store.getBoolean(SHARE_AUDIO, true),
         internetEnabled = store.getBoolean(INTERNET_ENABLED, true),
         customServer = store.getStringOrNull(INTERNET_SERVER),
+        defaultServer = defaultServer,
         allowRemoteControl = store.getBoolean(ALLOW_REMOTE_CONTROL, false),
     )
 

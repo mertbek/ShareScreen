@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import com.mertbek.sharescreen.link.ConnectLink
-import com.mertbek.sharescreen.settings.DEFAULT_SERVER
 import com.mertbek.sharescreen.ui.discover.DiscoverScreen
 import com.mertbek.sharescreen.ui.home.HomeScreen
 import com.mertbek.sharescreen.ui.host.HostScreen
@@ -71,7 +70,9 @@ fun App(
                     repository = services.settings,
                     canBeControlled = services.canBeControlled,
                     versionName = APP_VERSION,
-                    privacyUrl = "https://" + DEFAULT_SERVER.removePrefix("wss://") + "/privacy",
+                    privacyUrl = services.settings.settings.value.defaultServer?.let {
+                        "https://" + it.removePrefix("wss://").removePrefix("ws://") + "/privacy"
+                    },
                     onOpenUrl = services.ui::openUrl,
                     onBack = { stack.removeLast() },
                 )

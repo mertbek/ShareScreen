@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URI
 import java.util.Properties
 
 plugins {
@@ -14,7 +15,10 @@ val releaseKeyProperties = Properties().apply {
 }
 val hasReleaseKey = releaseKeyProperties.containsKey("storeFile")
 
-val defaultServerHost = "server.example"
+apply(from = rootProject.file("gradle/server-config.gradle.kts"))
+
+val defaultServer = extra["sharescreenServer"] as String?
+val defaultServerHost = defaultServer?.let { runCatching { URI(it).host }.getOrNull() } ?: "server.invalid"
 
 val abis = providers.gradleProperty("abis").orNull?.split(",") ?: listOf("arm64-v8a", "armeabi-v7a", "x86_64")
 
@@ -30,6 +34,7 @@ android {
         versionName = "0.1.0"
         providers.gradleProperty("appIdSuffix").orNull?.let { applicationIdSuffix = it }
         manifestPlaceholders["defaultServerHost"] = defaultServerHost
+        buildConfigField("String", "DEFAULT_SERVER", "\"${defaultServer.orEmpty()}\"")
         ndk {
             abiFilters += abis
         }

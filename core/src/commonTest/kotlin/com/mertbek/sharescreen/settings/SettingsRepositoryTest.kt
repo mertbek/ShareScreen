@@ -8,10 +8,18 @@ import kotlin.test.assertNull
 class SettingsRepositoryTest {
 
     @Test
-    fun `defaults use the built-in server`() {
-        val settings = SettingsRepository(MapSettings()).settings.value
+    fun `defaults use the configured server`() {
+        val settings = SettingsRepository(MapSettings(), DEFAULT).settings.value
         assertEquals(VideoQuality.STANDARD, settings.quality)
-        assertEquals(DEFAULT_SERVER, settings.internetServer)
+        assertEquals(DEFAULT, settings.internetServer)
+    }
+
+    @Test
+    fun `without a configured server there is none until one is set`() {
+        val repository = SettingsRepository(MapSettings())
+        assertNull(repository.settings.value.internetServer)
+        repository.setCustomServer("wss://example.com")
+        assertEquals("wss://example.com", repository.settings.value.internetServer)
     }
 
     @Test
@@ -34,16 +42,20 @@ class SettingsRepositoryTest {
 
     @Test
     fun `turning the internet off removes the server`() {
-        val repository = SettingsRepository(MapSettings())
+        val repository = SettingsRepository(MapSettings(), DEFAULT)
         repository.setInternetEnabled(false)
         assertNull(repository.settings.value.internetServer)
     }
 
     @Test
     fun `clearing the custom server goes back to the default`() {
-        val repository = SettingsRepository(MapSettings())
+        val repository = SettingsRepository(MapSettings(), DEFAULT)
         repository.setCustomServer("wss://example.com")
         repository.setCustomServer(null)
-        assertEquals(DEFAULT_SERVER, repository.settings.value.internetServer)
+        assertEquals(DEFAULT, repository.settings.value.internetServer)
+    }
+
+    private companion object {
+        const val DEFAULT = "wss://default.example"
     }
 }
