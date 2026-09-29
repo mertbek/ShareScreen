@@ -56,6 +56,11 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
+        val desktopTest by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+            }
+        }
         val desktopMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
