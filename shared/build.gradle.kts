@@ -1,3 +1,4 @@
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -7,6 +8,13 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.serialization)
+}
+
+val webrtcNatives = when {
+    OperatingSystem.current().isWindows -> "windows-x86_64"
+    OperatingSystem.current().isMacOsX ->
+        if (System.getProperty("os.arch") == "aarch64") "macos-aarch64" else "macos-x86_64"
+    else -> "linux-x86_64"
 }
 
 @OptIn(ExperimentalWasmDsl::class)
@@ -51,6 +59,8 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.webrtc.java)
+                runtimeOnly("dev.onvoid.webrtc:webrtc-java:${libs.versions.webrtcJava.get()}:$webrtcNatives")
             }
         }
     }
