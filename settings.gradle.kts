@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "ShareScreenKMP"
 
+include(":signaling")
 include(":shared")
 include(":desktopApp")
 include(":webApp")
