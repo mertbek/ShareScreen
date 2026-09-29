@@ -11,7 +11,9 @@ plugins {
 
 subprojects {
     tasks.withType<Test>().configureEach {
+        timeout.set(java.time.Duration.ofMinutes(10))
         testLogging {
+            events("started", "passed", "failed")
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
     }
