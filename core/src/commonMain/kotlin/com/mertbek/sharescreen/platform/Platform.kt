@@ -5,6 +5,8 @@ import com.mertbek.sharescreen.control.ControlMessage
 import com.mertbek.sharescreen.control.HostPlatform
 import com.mertbek.sharescreen.control.NavAction
 import com.mertbek.sharescreen.control.TouchPointer
+import com.mertbek.sharescreen.rtc.CapturedMedia
+import com.mertbek.sharescreen.settings.VideoQuality
 import kotlinx.coroutines.flow.StateFlow
 
 class DeviceName(val value: String)
@@ -42,4 +44,9 @@ interface InputInjector {
     fun pointer(message: ControlMessage.Pointer)
     fun keyboard(message: ControlMessage.Keyboard)
     fun releaseInput()
+}
+
+interface ScreenSource {
+    suspend fun start(quality: VideoQuality, shareAudio: Boolean, wholeScreenOnly: Boolean): CapturedMedia?
+    fun stop()
 }

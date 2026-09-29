@@ -20,6 +20,7 @@ class FakeMedia(override val hasAudio: Boolean = false) : CapturedMedia {
     override val width = 1280
     override val height = 720
     override val maxVideoBitrateBps = 4_000_000
+    override val preview: RemoteVideo? = null
 }
 
 class FakeVideo : RemoteVideo

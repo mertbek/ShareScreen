@@ -21,6 +21,7 @@ interface CapturedMedia {
     val height: Int
     val hasAudio: Boolean
     val maxVideoBitrateBps: Int
+    val preview: RemoteVideo?
 }
 
 interface RemoteVideo

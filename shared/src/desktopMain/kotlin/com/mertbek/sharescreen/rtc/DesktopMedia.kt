@@ -11,6 +11,7 @@ class DesktopCapturedMedia(
     private val releaseSource: () -> Unit,
 ) : CapturedMedia {
     override val hasAudio: Boolean = false
+    override val preview: RemoteVideo = DesktopRemoteVideo(video)
 
     fun release() {
         video.dispose()
