@@ -19,3 +19,8 @@ internal external fun writeClipboard(text: String)
     "(text) => { if (navigator.share) { navigator.share({ text: text }).catch(() => {}); } else { navigator.clipboard.writeText(text).catch(() => {}); } }"
 )
 internal external fun shareText(text: String)
+
+@JsFun(
+    "() => { const splash = document.getElementById('splash'); if (splash) { splash.classList.add('done'); setTimeout(() => splash.remove(), 400); } }"
+)
+internal external fun hideSplash()

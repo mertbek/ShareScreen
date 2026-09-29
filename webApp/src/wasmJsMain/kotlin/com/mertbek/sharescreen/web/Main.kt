@@ -1,5 +1,6 @@
 package com.mertbek.sharescreen.web
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ fun main() {
     val initialLink = ConnectLink.parse(pageUrl())
     if (initialLink != null) clearPageFragment()
     ComposeViewport {
+        LaunchedEffect(Unit) { hideSplash() }
         var link by remember { mutableStateOf(initialLink) }
         App(services, incomingLink = link, onIncomingLinkHandled = { link = null })
     }

@@ -2,13 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ShareScreen</title>
+    <meta name="description" content="Share your screen with a room code and PIN, or watch someone else's, in the browser.">
+    <meta name="theme-color" content="#4c6fff">
+    <meta name="color-scheme" content="light dark">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
     <style>
-        html, body { margin: 0; height: 100%; overflow: hidden; }
+        :root { --page: #fbf8ff; --text: #1b1b21; --muted: #46464f; --ring: #dde1ff; }
+        @media (prefers-color-scheme: dark) {
+            :root { --page: #121318; --text: #e4e1e9; --muted: #c7c5d0; --ring: #2637b4; }
+        }
+        html, body { margin: 0; height: 100%; overflow: hidden; background: var(--page); }
+        #splash {
+            position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 20px; background: var(--page); color: var(--text);
+            font-family: system-ui, sans-serif; transition: opacity .3s ease; z-index: 10;
+        }
+        #splash.done { opacity: 0; pointer-events: none; }
+        #splash img { width: 88px; height: 88px; }
+        #splash .spinner {
+            width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--ring);
+            border-top-color: #4c6fff; animation: spin 1s linear infinite;
+        }
+        #splash p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; padding: 0 24px; }
+        #unsupported { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
-    <script src="webApp.js"></script>
+    <script>
+        const supportsWasmGc = typeof WebAssembly === "object" &&
+            WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
+        document.documentElement.lang = (navigator.language || "en").slice(0, 2);
+        addEventListener("DOMContentLoaded", () => {
+            if (supportsWasmGc) {
+                const script = document.createElement("script");
+                script.src = "webApp.js";
+                document.head.appendChild(script);
+            } else {
+                document.querySelector("#splash .spinner").style.display = "none";
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("unsupported").style.display = "block";
+            }
+        });
+    </script>
 </head>
 <body>
+    <div id="splash">
+        <img src="favicon.svg" alt="">
+        <div class="spinner"></div>
+        <p id="loading">ShareScreen</p>
+        <p id="unsupported">This browser is too old for ShareScreen. Use a current version of Chrome, Edge, Firefox or Safari.</p>
+    </div>
+    <noscript>ShareScreen needs JavaScript.</noscript>
 </body>
 </html>
