@@ -48,6 +48,7 @@ class DesktopLoopbackTest {
 
     @Test
     fun `the screen is captured and streamed`() = runBlocking {
+        if (System.getenv("SHARESCREEN_NO_DISPLAY") != null) return@runBlocking
         val engine = DesktopRtcEngine()
         val capture = DesktopScreenCapture(engine)
         val loopback = Loopback(engine, capture.start(VideoQuality.LOW))
