@@ -59,6 +59,10 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
+        androidMain.dependencies {
+            api(libs.stream.webrtc.android)
+            implementation(libs.androidx.core.ktx)
+        }
         val desktopTest by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
