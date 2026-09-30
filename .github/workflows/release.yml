@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,6 +18,7 @@ jobs:
         with:
           persist-credentials: false
       - name: The tag matches the version
+        if: github.ref_type == 'tag'
         env:
           TAG: ${{ github.ref_name }}
         run: |
@@ -119,6 +121,11 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y fakeroot
       - run: ./gradlew --console=plain ${{ matrix.tasks }}
+      - name: Show the packaging logs
+        if: failure()
+        shell: bash
+        run: |
+          find desktopApp/build/compose/logs -type f -name '*.txt' -exec sh -c 'echo "== $1"; cat "$1"' _ {} \;
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: desktop-${{ matrix.os }}
@@ -127,6 +134,7 @@ jobs:
 
   publish:
     name: Draft release
+    if: github.ref_type == 'tag'
     needs: [android, desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 15
