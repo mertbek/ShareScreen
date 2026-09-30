@@ -34,6 +34,7 @@ class DesktopPeer(private val factory: PeerConnectionFactory, config: RTCConfigu
     private val dataChannels = mutableListOf<DesktopDataChannel>()
     private val disposers = mutableListOf<() -> Unit>()
     private val lock = Any()
+    private var remoteDescriptionSet = false
 
     override val events: Flow<RtcEvent> = eventChannel.receiveAsFlow()
 
@@ -82,15 +83,18 @@ class DesktopPeer(private val factory: PeerConnectionFactory, config: RTCConfigu
 
     override suspend fun setRemoteDescription(description: SessionDescription) {
         setDescription { connection.setRemoteDescription(description.toNative(), it) }
-        val queued = synchronized(lock) { pendingRemoteCandidates.toList().also { pendingRemoteCandidates.clear() } }
+        val queued = synchronized(lock) {
+            remoteDescriptionSet = true
+            pendingRemoteCandidates.toList().also { pendingRemoteCandidates.clear() }
+        }
         queued.forEach(connection::addIceCandidate)
     }
 
     override fun addRemoteIceCandidate(candidate: IceCandidate) {
         val native = RTCIceCandidate(candidate.sdpMid, candidate.sdpMLineIndex, candidate.candidate)
         val queued = synchronized(lock) {
-            if (connection.remoteDescription == null) pendingRemoteCandidates += native
-            connection.remoteDescription == null
+            if (!remoteDescriptionSet) pendingRemoteCandidates += native
+            !remoteDescriptionSet
         }
         if (!queued) connection.addIceCandidate(native)
     }
