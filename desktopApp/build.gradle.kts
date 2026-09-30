@@ -56,6 +56,7 @@ compose.desktop {
             macOS {
                 iconFile.set(project.file("icons/icon.icns"))
                 bundleID = "com.mertbek.sharescreen"
+                packageVersion = "1.0.0"
                 dmgPackageVersion = "1.0.0"
                 pkgPackageVersion = "1.0.0"
             }
