@@ -29,6 +29,7 @@ fun AndroidVideoView(
     modifier: Modifier,
     zoom: Zoom,
     onVideoSize: (Int, Int) -> Unit,
+    preview: Boolean = false,
 ) {
     val track = (video as AndroidRemoteVideo).track
     val context = LocalContext.current
@@ -52,6 +53,7 @@ fun AndroidVideoView(
         })
         renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
         renderer.setEnableHardwareScaler(true)
+        if (preview) renderer.setFpsReduction(PREVIEW_FPS)
         onDispose { renderer.release() }
     }
     DisposableEffect(track, renderer) {
@@ -81,3 +83,5 @@ fun AndroidVideoView(
         }
     }
 }
+
+private const val PREVIEW_FPS = 10f

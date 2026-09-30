@@ -48,6 +48,10 @@ class AndroidUi(
         AndroidVideoView(video, eglContext, modifier, zoom, onVideoSize)
 
     @Composable
+    override fun PreviewView(video: RemoteVideo, modifier: Modifier) =
+        AndroidVideoView(video, eglContext, modifier, Zoom(), { _, _ -> }, preview = true)
+
+    @Composable
     override fun BackHandler(enabled: Boolean, onBack: () -> Unit) = ActivityBackHandler(enabled, onBack)
 
     @Composable
