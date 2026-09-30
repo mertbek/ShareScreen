@@ -63,15 +63,10 @@ jobs:
     name: Desktop (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-latest
-            experimental: false
-          - os: ubuntu-latest
-            experimental: true
+        os: [windows-latest, ubuntu-latest]
     env:
       SHARESCREEN_NO_DISPLAY: "1"
     steps:
