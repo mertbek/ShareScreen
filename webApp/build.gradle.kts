@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
@@ -38,3 +39,5 @@ kotlin {
         }
     }
 }
+
+rootProject.the<WasmYarnRootExtension>().resolution("ws", "8.21.0")
