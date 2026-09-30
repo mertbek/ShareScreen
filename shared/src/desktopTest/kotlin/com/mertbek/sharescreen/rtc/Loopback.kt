@@ -66,7 +66,10 @@ class Loopback(engine: DesktopRtcEngine, private val media: DesktopCapturedMedia
 
         hostConnected.await()
         viewerConnected.await()
-        remoteVideo.await().track.addSink(VideoTrackSink { frames.incrementAndGet() })
+        remoteVideo.await().track.addSink(VideoTrackSink { frame ->
+            frames.incrementAndGet()
+            frame.release()
+        })
         viewerChannel = remoteChannel.await()
         viewerChannel.state.first { it == DataChannelState.OPEN }
         hostChannel.state.first { it == DataChannelState.OPEN }

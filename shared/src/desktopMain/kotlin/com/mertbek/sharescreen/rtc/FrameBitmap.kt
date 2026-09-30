@@ -1,7 +1,5 @@
 package com.mertbek.sharescreen.rtc
 
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import dev.onvoid.webrtc.media.FourCC
 import dev.onvoid.webrtc.media.video.VideoBufferConverter
 import dev.onvoid.webrtc.media.video.VideoFrame
@@ -24,7 +22,6 @@ class FrameBitmap : VideoTrackSink {
     private val lock = ReentrantReadWriteLock()
     private val retired = ArrayDeque<Image>()
     private var current: Image? = null
-    private var currentBitmap: ImageBitmap? = null
     private var pixels = ByteArray(0)
     private var number = 0L
     private val _frame = MutableStateFlow<Frame?>(null)
@@ -32,7 +29,14 @@ class FrameBitmap : VideoTrackSink {
     val frame: StateFlow<Frame?> = _frame
 
     override fun onVideoFrame(frame: VideoFrame) {
-        if (!busy.compareAndSet(false, true)) return
+        try {
+            if (busy.compareAndSet(false, true)) convert(frame)
+        } finally {
+            frame.release()
+        }
+    }
+
+    private fun convert(frame: VideoFrame) {
         try {
             val width = frame.buffer.width
             val height = frame.buffer.height
@@ -42,11 +46,9 @@ class FrameBitmap : VideoTrackSink {
             VideoBufferConverter.convertFromI420(frame.buffer, pixels, FourCC.ARGB)
             val info = ImageInfo(width, height, ColorType.BGRA_8888, ColorAlphaType.OPAQUE)
             val image = Image.makeRaster(info, pixels, width * BYTES_PER_PIXEL)
-            val bitmap = image.toComposeImageBitmap()
             lock.write {
                 current?.let(retired::addLast)
                 current = image
-                currentBitmap = bitmap
                 while (retired.size > KEEP_RETIRED) retired.removeFirst().close()
             }
             _frame.value = Frame(width, height, ++number)
@@ -56,13 +58,12 @@ class FrameBitmap : VideoTrackSink {
         }
     }
 
-    fun <T> draw(block: (ImageBitmap) -> T): T? = lock.read { currentBitmap?.let(block) }
+    fun <T> draw(block: (Image) -> T): T? = lock.read { current?.let(block) }
 
     fun close() {
         lock.write {
             current?.close()
             current = null
-            currentBitmap = null
             retired.forEach(Image::close)
             retired.clear()
         }

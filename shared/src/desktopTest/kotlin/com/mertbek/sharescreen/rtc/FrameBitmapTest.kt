@@ -1,5 +1,6 @@
 package com.mertbek.sharescreen.rtc
 
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import dev.onvoid.webrtc.media.video.NativeI420Buffer
 import dev.onvoid.webrtc.media.video.VideoFrame
 import kotlin.test.Test
@@ -20,6 +21,7 @@ class FrameBitmapTest {
         val frame = VideoFrame(buffer, 0)
 
         val frameBitmap = FrameBitmap()
+        frame.retain()
         frameBitmap.onVideoFrame(frame)
         frame.release()
 
@@ -27,7 +29,7 @@ class FrameBitmapTest {
         assertEquals(WIDTH, published.width)
         assertEquals(HEIGHT, published.height)
         val pixels = IntArray(WIDTH * HEIGHT)
-        assertNotNull(frameBitmap.draw { it.readPixels(pixels) })
+        assertNotNull(frameBitmap.draw { it.toComposeImageBitmap().readPixels(pixels) })
         frameBitmap.close()
         val pixel = pixels[HEIGHT / 2 * WIDTH + WIDTH / 2]
         val red = pixel shr 16 and 0xFF
@@ -41,6 +43,7 @@ class FrameBitmapTest {
         DesktopRtcEngine().factory
         val frame = VideoFrame(NativeI420Buffer.allocate(4200, 4200), 0)
         val frameBitmap = FrameBitmap()
+        frame.retain()
         frameBitmap.onVideoFrame(frame)
         frame.release()
         assertNull(frameBitmap.frame.value)

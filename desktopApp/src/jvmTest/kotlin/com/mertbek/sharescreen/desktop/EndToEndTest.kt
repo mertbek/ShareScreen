@@ -113,7 +113,10 @@ class EndToEndTest {
             val watching = eventually { viewer.state.value as? ViewerState.Watching }
 
             val frames = AtomicInteger()
-            (watching.video as DesktopRemoteVideo).track.addSink(VideoTrackSink { frames.incrementAndGet() })
+            (watching.video as DesktopRemoteVideo).track.addSink(VideoTrackSink { frame ->
+                frames.incrementAndGet()
+                frame.release()
+            })
             eventually { frames.get().takeIf { it >= 5 } }
 
             eventually { viewer.control.value.takeIf { it.available } }
