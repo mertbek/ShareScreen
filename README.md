@@ -5,6 +5,12 @@ Compose Multiplatform; picture, sound and input travel peer to peer over WebRTC.
 
 See [docs/architecture.md](docs/architecture.md) for the design.
 
+## Download
+
+Packages for Android, Windows, macOS and Linux are on the
+[releases page](https://github.com/mertbek/ShareScreen/releases/latest). The web version runs at
+https://mertbek.github.io/ShareScreen/.
+
 ## Build
 
 Requires JDK 17 or newer and, for the Android app, the Android SDK (`local.properties` with `sdk.dir`).
