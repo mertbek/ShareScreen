@@ -18,6 +18,10 @@ class DesktopUi : PlatformUi {
     override fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) =
         DesktopVideoView(video, modifier, zoom, onVideoSize)
 
+    @Composable
+    override fun PreviewView(video: RemoteVideo, modifier: Modifier) =
+        DesktopVideoView(video, modifier, Zoom(), { _, _ -> }, preview = true)
+
     override fun share(text: String) = copyToClipboard(text)
 
     override fun openUrl(url: String) {

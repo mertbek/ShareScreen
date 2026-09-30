@@ -2,6 +2,7 @@ package com.mertbek.sharescreen.rtc
 
 import dev.onvoid.webrtc.media.FourCC
 import dev.onvoid.webrtc.media.video.VideoBufferConverter
+import dev.onvoid.webrtc.media.video.VideoFrameBuffer
 import dev.onvoid.webrtc.media.video.VideoFrame
 import dev.onvoid.webrtc.media.video.VideoTrackSink
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +18,9 @@ import kotlin.concurrent.write
 
 data class Frame(val width: Int, val height: Int, val number: Long)
 
-class FrameBitmap : VideoTrackSink {
+class FrameBitmap(private val preview: Boolean = false) : VideoTrackSink {
     private val busy = AtomicBoolean(false)
+    private var lastPreview = 0L
     private val lock = ReentrantReadWriteLock()
     private val retired = ArrayDeque<Image>()
     private var current: Image? = null
@@ -30,20 +32,35 @@ class FrameBitmap : VideoTrackSink {
 
     override fun onVideoFrame(frame: VideoFrame) {
         try {
-            if (busy.compareAndSet(false, true)) convert(frame)
+            if (due() && busy.compareAndSet(false, true)) convert(frame)
         } finally {
             frame.release()
         }
     }
 
+    private fun due(): Boolean {
+        if (!preview) return true
+        val now = System.nanoTime()
+        if (now - lastPreview < PREVIEW_INTERVAL_NANOS) return false
+        lastPreview = now
+        return true
+    }
+
     private fun convert(frame: VideoFrame) {
+        var scaled: VideoFrameBuffer? = null
         try {
-            val width = frame.buffer.width
-            val height = frame.buffer.height
-            if (width <= 0 || height <= 0 || width.toLong() * height > MAX_PIXELS) return
+            val source = frame.buffer
+            if (source.width <= 0 || source.height <= 0 || source.width.toLong() * source.height > MAX_PIXELS) return
+            if (preview && source.width > PREVIEW_WIDTH * 3 / 2) {
+                val factor = source.width / PREVIEW_WIDTH
+                scaled = source.cropAndScale(0, 0, source.width, source.height, evenSize(source.width / factor), evenSize(source.height / factor))
+            }
+            val buffer = scaled ?: source
+            val width = buffer.width
+            val height = buffer.height
             val byteCount = width * height * BYTES_PER_PIXEL
             if (pixels.size != byteCount) pixels = ByteArray(byteCount)
-            VideoBufferConverter.convertFromI420(frame.buffer, pixels, FourCC.ARGB)
+            VideoBufferConverter.convertFromI420(buffer, pixels, FourCC.ARGB)
             val info = ImageInfo(width, height, ColorType.BGRA_8888, ColorAlphaType.OPAQUE)
             val image = Image.makeRaster(info, pixels, width * BYTES_PER_PIXEL)
             lock.write {
@@ -54,9 +71,12 @@ class FrameBitmap : VideoTrackSink {
             _frame.value = Frame(width, height, ++number)
         } catch (_: Exception) {
         } finally {
+            scaled?.release()
             busy.set(false)
         }
     }
+
+    private fun evenSize(value: Int) = maxOf(2, value and 1.inv())
 
     fun <T> draw(block: (Image) -> T): T? = lock.read { current?.let(block) }
 
@@ -73,5 +93,7 @@ class FrameBitmap : VideoTrackSink {
         const val BYTES_PER_PIXEL = 4
         const val MAX_PIXELS = 4096L * 4096L
         const val KEEP_RETIRED = 3
+        const val PREVIEW_WIDTH = 480
+        const val PREVIEW_INTERVAL_NANOS = 100_000_000L
     }
 }

@@ -17,6 +17,9 @@ interface PlatformUi {
     fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (width: Int, height: Int) -> Unit)
 
     @Composable
+    fun PreviewView(video: RemoteVideo, modifier: Modifier) = VideoView(video, modifier, Zoom()) { _, _ -> }
+
+    @Composable
     fun BackHandler(enabled: Boolean, onBack: () -> Unit) = Unit
 
     @Composable

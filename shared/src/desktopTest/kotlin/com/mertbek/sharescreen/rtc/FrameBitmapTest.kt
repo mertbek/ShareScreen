@@ -50,6 +50,20 @@ class FrameBitmapTest {
         frameBitmap.close()
     }
 
+    @Test
+    fun `a preview frame is scaled down`() {
+        DesktopRtcEngine().factory
+        val frame = VideoFrame(NativeI420Buffer.allocate(1920, 1080), 0)
+        val frameBitmap = FrameBitmap(preview = true)
+        frame.retain()
+        frameBitmap.onVideoFrame(frame)
+        frame.release()
+        val published = assertNotNull(frameBitmap.frame.value)
+        assertEquals(480, published.width)
+        assertEquals(270, published.height)
+        frameBitmap.close()
+    }
+
     private fun fill(plane: java.nio.ByteBuffer, stride: Int, rows: Int, value: Int) {
         val row = ByteArray(stride) { value.toByte() }
         for (y in 0 until rows) {

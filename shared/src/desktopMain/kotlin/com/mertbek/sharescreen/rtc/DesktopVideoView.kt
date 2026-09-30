@@ -20,9 +20,15 @@ import org.jetbrains.skia.MipmapMode
 import org.jetbrains.skia.Rect
 
 @Composable
-fun DesktopVideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) {
+fun DesktopVideoView(
+    video: RemoteVideo,
+    modifier: Modifier,
+    zoom: Zoom,
+    onVideoSize: (Int, Int) -> Unit,
+    preview: Boolean = false,
+) {
     val track = (video as DesktopRemoteVideo).track
-    val sink = remember(track) { FrameBitmap() }
+    val sink = remember(track, preview) { FrameBitmap(preview) }
     DisposableEffect(track) {
         track.addSink(sink)
         onDispose {

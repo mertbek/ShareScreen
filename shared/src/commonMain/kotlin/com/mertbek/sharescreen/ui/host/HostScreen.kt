@@ -501,7 +501,7 @@ private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioE
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 capture.preview?.let {
                     if (showVideo) {
-                        services.ui.VideoView(it, Modifier.fillMaxWidth().height(PREVIEW_HEIGHT), Zoom()) { _, _ -> }
+                        services.ui.PreviewView(it, Modifier.fillMaxWidth().height(PREVIEW_HEIGHT))
                     } else {
                         Spacer(Modifier.fillMaxWidth().height(PREVIEW_HEIGHT))
                     }
