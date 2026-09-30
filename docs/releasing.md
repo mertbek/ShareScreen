@@ -8,6 +8,11 @@
 
 The workflow stops early when the tag does not match the version.
 
+To try the packaging without a release, run the Release workflow by hand from the Actions tab.
+It builds every package and keeps them as run artifacts, but creates no release. On macOS the
+app version must start with a number above zero, so the macOS packages use `1.0.0` whatever
+`sharescreen.version` says.
+
 ## Repository settings
 
 Secrets, under Settings > Secrets and variables > Actions:
