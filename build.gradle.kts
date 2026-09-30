@@ -14,7 +14,6 @@ subprojects {
         timeout.set(java.time.Duration.ofMinutes(10))
         testLogging {
             events("started", "passed", "failed")
-            showStandardStreams = System.getenv("CI") != null
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
     }
