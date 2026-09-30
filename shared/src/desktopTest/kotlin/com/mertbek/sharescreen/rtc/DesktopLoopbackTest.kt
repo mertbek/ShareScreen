@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 class DesktopLoopbackTest {
 
     @Test
-    fun `video and control messages flow between two peers`() = runBlocking {
+    fun `video and control messages flow between two peers`() = HangWatchdog(60).use { runBlocking {
         val engine = DesktopRtcEngine()
         val factory = engine.factory
         val source = CustomVideoSource()
@@ -44,7 +44,7 @@ class DesktopLoopbackTest {
         } finally {
             loopback.close()
         }
-    }
+    } }
 
     @Test
     fun `the screen is captured and streamed`() = runBlocking {
