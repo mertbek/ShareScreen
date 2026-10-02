@@ -10,7 +10,7 @@ data class ViewerInfo(
     val isConnected: Boolean,
     val viaInternet: Boolean = false,
     val control: ControlRole = ControlRole.NONE,
-    /** Came back on a pass instead of being approved this time. */
+    /** This host remembers the viewer, which can come back without asking. */
     val remembered: Boolean = false,
 )
 

@@ -19,6 +19,9 @@ Known limits by design:
   itself with a secret handed over the encrypted media connection and a counter that only grows,
   so a pass copied off the network does not work again. Forget a device in the settings to stop
   that.
+- A remembered device you let take control without asking gets control as soon as it asks,
+  unless someone else has it. That is all of the device, as with any control. Turn it off for
+  each device in the settings.
 - Signaling on the local network is not encrypted, so the PIN can be read by someone else on
   that network. Use it on networks you trust.
 - A viewer you allow to control a device controls all of it. On a computer that includes

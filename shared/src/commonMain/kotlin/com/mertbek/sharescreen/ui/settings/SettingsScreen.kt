@@ -153,7 +153,7 @@ fun SettingsScreen(
                 }
                 if (canShareNearby && rememberedDevices != null) {
                     Section(stringResource(Res.string.settings_remembered_title)) {
-                        RememberedViewers(rememberedDevices)
+                        RememberedViewers(rememberedDevices, canBeControlled)
                     }
                 }
                 Section(stringResource(Res.string.settings_section_internet)) {
@@ -303,7 +303,7 @@ private fun CustomServer(saved: String?, defaultServer: String?, onSave: (String
 }
 
 @Composable
-private fun RememberedViewers(devices: RememberedDevices) {
+private fun RememberedViewers(devices: RememberedDevices, canBeControlled: Boolean) {
     val viewers by devices.viewers.collectAsState()
     Text(
         text = stringResource(if (viewers.isEmpty()) Res.string.settings_remembered_empty else Res.string.settings_remembered_description),
@@ -322,6 +322,23 @@ private fun RememberedViewers(devices: RememberedDevices) {
             Text(viewer.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, modifier = Modifier.weight(1f))
             TextButton(onClick = { devices.forgetViewer(viewer.key) }) {
                 Text(stringResource(Res.string.settings_remembered_forget))
+            }
+        }
+        if (canBeControlled) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .toggleable(value = viewer.control, role = Role.Switch, onValueChange = { devices.allowControl(viewer.key, it) })
+                    .padding(start = 76.dp, end = 20.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(Res.string.settings_remembered_control),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(checked = viewer.control, onCheckedChange = null)
             }
         }
     }

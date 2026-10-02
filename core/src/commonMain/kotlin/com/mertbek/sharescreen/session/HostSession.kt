@@ -104,6 +104,10 @@ class HostSession(
     private val recoveries = HashMap<String, Job>()
     private val connectedOnce = HashSet<String>()
     private val offers = HashMap<String, String>()
+
+    /** The key each viewer this host remembers is known by. */
+    private val rememberedKeys = HashMap<String, String>()
+
     private var allowControl = false
     private var controlAvailable = false
     private var lanPin = false
@@ -131,6 +135,7 @@ class HostSession(
         recoveries.clear()
         connectedOnce.clear()
         offers.clear()
+        rememberedKeys.clear()
         peers.values.forEach(RtcPeer::close)
         peers.clear()
         viewerLinks.clear()
@@ -149,9 +154,11 @@ class HostSession(
         letIn(viewerId, pending.deviceName, remember = remember)
     }
 
-    private suspend fun CoroutineScope.letIn(viewerId: String, deviceName: String, remember: Boolean = false, remembered: Boolean = false) {
+    private suspend fun CoroutineScope.letIn(viewerId: String, deviceName: String, remember: Boolean = false, rememberedKey: String? = null) {
         val link = viewerLinks[viewerId] ?: return
         val media = media ?: return
+        val remembered = rememberedKey != null
+        if (rememberedKey != null) rememberedKeys[viewerId] = rememberedKey
 
         link.send(SignalMessage.JoinDecision(viewerId, accepted = true))
         val peer = rtc.createPeer(link.iceServers)
@@ -169,8 +176,7 @@ class HostSession(
             launch {
                 if (!control.awaitOpen()) return@launch
                 control.send(controlStatus(viewerId))
-                // The data channel is encrypted, unlike signaling on the local network, so the secret travels here.
-                if (remember && !link.viaInternet) rememberedDevices?.rememberViewer(deviceName)?.let(control::send)
+                if (remember) rememberViewer(viewerId)
             }
             launch { control.messages.collect { onControlMessage(viewerId, it) } }
             val offer = peer.createOffer().let { it.copy(sdp = OpusSdp.preferStereoMusic(it.sdp)) }
@@ -190,10 +196,30 @@ class HostSession(
 
     fun kick(viewerId: String) = launchInSession { disconnect(viewerId) }
 
-    fun grantControl(viewerId: String) = launchInSession {
+    /** Hands control to a viewer; with [remember] it gets control without asking from now on. */
+    fun grantControl(viewerId: String, remember: Boolean = false) = launchInSession {
         if (!controlAvailable || controlRole(viewerId) != ControlRole.REQUESTED) return@launchInSession
         (_state.value as? HostState.Live)?.controller?.let { setControlRole(it.id, ControlRole.NONE) }
         setControlRole(viewerId, ControlRole.GRANTED)
+        if (remember) rememberViewer(viewerId, control = true)
+    }
+
+    /** Remembers a viewer on the local network, or lets one already remembered take control without asking. */
+    private fun rememberViewer(viewerId: String, control: Boolean = false) {
+        val devices = rememberedDevices ?: return
+        val known = rememberedKeys[viewerId]
+        if (known != null) {
+            if (control) devices.allowControl(known, true)
+            return
+        }
+        val channel = controlChannels[viewerId] ?: return
+        if (viewerLinks[viewerId]?.viaInternet != false) return
+        val name = (_state.value as? HostState.Live)?.viewers?.find { it.id == viewerId }?.deviceName ?: return
+        val invitation = devices.rememberViewer(name, control)
+        rememberedKeys[viewerId] = invitation.key
+        // The data channel is encrypted, unlike signaling on the local network, so the secret travels here.
+        channel.send(invitation)
+        updateLive { live -> live.copy(viewers = live.viewers.map { if (it.id == viewerId) it.copy(remembered = true) else it }) }
     }
 
     fun denyControl(viewerId: String) = launchInSession {
@@ -352,7 +378,7 @@ class HostSession(
                         viewerLinks.remove(message.viewerId)
                         link.send(SignalMessage.JoinDecision(message.viewerId, accepted = false))
                     } else {
-                        launchInSession { letIn(message.viewerId, message.deviceName, remembered = true) }
+                        launchInSession { letIn(message.viewerId, message.deviceName, rememberedKey = viewer.key) }
                     }
                     return
                 }
@@ -446,8 +472,12 @@ class HostSession(
         val granted = role == ControlRole.GRANTED
         val injector = inputInjector
         when (message) {
-            ControlMessage.Request ->
-                if (controlAvailable && role == ControlRole.NONE) setControlRole(viewerId, ControlRole.REQUESTED)
+            ControlMessage.Request -> if (controlAvailable && role == ControlRole.NONE) {
+                // A viewer trusted with control gets it without asking, unless someone else has it.
+                val trusted = rememberedKeys[viewerId]?.let { rememberedDevices?.controlAllowed(it) } == true
+                val free = (_state.value as? HostState.Live)?.controller == null
+                setControlRole(viewerId, if (trusted && free) ControlRole.GRANTED else ControlRole.REQUESTED)
+            }
             ControlMessage.Release -> if (role != ControlRole.NONE) setControlRole(viewerId, ControlRole.NONE)
             is ControlMessage.Touch -> if (granted) injector?.touch(message.time, message.pointers)
             is ControlMessage.Navigate -> if (granted) injector?.navigate(message.action)
@@ -519,6 +549,7 @@ class HostSession(
         recoveries.remove(viewerId)?.cancel()
         connectedOnce -= viewerId
         offers -= viewerId
+        rememberedKeys -= viewerId
         controlChannels.remove(viewerId)?.close()
         peers.remove(viewerId)?.close()
         updateLive { live ->

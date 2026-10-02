@@ -169,17 +169,36 @@ class SessionTest {
         val hostDevices = RememberedDevices(MapSettings())
         val viewerDevices = RememberedDevices(MapSettings())
         val engine = FakeRtcEngine()
+        val injector = RecordingInjector()
         val host = HostSession(
             rtc = engine,
             signalingClient = SignalingClient(cioClient()),
             deviceName = DeviceName("Host"),
             lanServer = EmbeddedLanServer(),
+            inputInjector = injector,
             rememberedDevices = hostDevices,
         )
         private val client = SignalingClient(cioClient())
 
-        fun viewer() = ViewerSession(engine, client, DeviceName("Tablet"), viewerDevices)
+        fun viewer(name: String = "Tablet", devices: RememberedDevices = viewerDevices) =
+            ViewerSession(engine, client, DeviceName(name), devices)
     }
+
+    /** Shares with remote control allowed and returns how a viewer reaches this host. */
+    private suspend fun Remembering.shareWithControl(): JoinTarget.Lan {
+        host.start(FakeMedia(hasAudio = true), internetServer = null, allowControl = true)
+        return JoinTarget.Lan("127.0.0.1", eventually { host.state.value as? HostState.Live }.port, hostDevices.hostId)
+    }
+
+    private suspend fun Remembering.watch(viewer: ViewerSession, target: JoinTarget.Lan, approve: Boolean) {
+        viewer.connect(target, pin = null)
+        if (approve) host.approve(eventually { (host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }.id)
+        eventually { viewer.state.value as? ViewerState.Watching }
+        eventually { viewer.control.value.takeIf { it.available } }
+    }
+
+    private suspend fun Remembering.controlOf(name: String): ControlRole =
+        eventually { (host.state.value as? HostState.Live)?.viewers?.find { it.deviceName == name }?.control?.takeIf { it != ControlRole.NONE } }
 
     /** Shares, lets a viewer in with "remember this device" ticked and sends it away again. */
     private suspend fun Remembering.rememberViewer(lanPin: Boolean): JoinTarget.Lan {
@@ -231,6 +250,66 @@ class SessionTest {
         assertFalse((setup.host.state.value as HostState.Live).viewers.single().remembered)
 
         asking.close()
+        setup.host.stop().join()
+    }
+
+    @Test
+    fun `a device let in with control without asking comes back and takes control on its own`() = runBlocking {
+        val setup = Remembering()
+        val target = setup.shareWithControl()
+        val first = setup.viewer()
+        setup.watch(first, target, approve = true)
+        first.requestControl()
+        setup.controlOf("Tablet")
+        setup.host.grantControl((setup.host.state.value as HostState.Live).viewers.single().id, remember = true)
+        eventually { first.control.value.takeIf { it.role == ControlRole.GRANTED } }
+        eventually { setup.viewerDevices.knowsHost(setup.hostDevices.hostId).takeIf { it } }
+        assertTrue(setup.hostDevices.viewers.value.single().control)
+        assertTrue((setup.host.state.value as HostState.Live).viewers.single().remembered)
+        first.close()
+        eventually { (setup.host.state.value as? HostState.Live)?.viewers?.isEmpty()?.takeIf { it } }
+
+        val again = setup.viewer()
+        setup.watch(again, target, approve = false)
+        again.requestControl()
+        eventually { again.control.value.takeIf { it.role == ControlRole.GRANTED } }
+        again.navigate(NavAction.HOME)
+        eventually { setup.injector.events.takeIf { "navigate:HOME" in it } }
+
+        again.close()
+        setup.host.stop().join()
+    }
+
+    @Test
+    fun `a device trusted with control still asks while someone else has it, or once the host takes the trust back`() = runBlocking {
+        val setup = Remembering()
+        val invitation = setup.hostDevices.rememberViewer("Tablet", control = true)
+        setup.viewerDevices.rememberHost(invitation)
+        val target = setup.shareWithControl()
+
+        val phone = setup.viewer("Phone", RememberedDevices(MapSettings()))
+        setup.watch(phone, target, approve = true)
+        phone.requestControl()
+        setup.controlOf("Phone")
+        setup.host.grantControl((setup.host.state.value as HostState.Live).viewers.single().id)
+        eventually { phone.control.value.takeIf { it.role == ControlRole.GRANTED } }
+
+        val tablet = setup.viewer()
+        setup.watch(tablet, target, approve = false)
+        tablet.requestControl()
+        assertEquals(ControlRole.REQUESTED, setup.controlOf("Tablet"))
+        assertEquals(ControlRole.GRANTED, setup.controlOf("Phone"))
+        tablet.close()
+        phone.close()
+        eventually { (setup.host.state.value as? HostState.Live)?.viewers?.isEmpty()?.takeIf { it } }
+
+        setup.hostDevices.allowControl(invitation.key, false)
+        val back = setup.viewer()
+        setup.watch(back, target, approve = false)
+        back.requestControl()
+        assertEquals(ControlRole.REQUESTED, setup.controlOf("Tablet"))
+
+        back.close()
         setup.host.stop().join()
     }
 

@@ -155,7 +155,8 @@ fun HostScreen(
             ControlRequestDialog(
                 viewer = controlRequest,
                 desktop = services.inputInjector?.platform == HostPlatform.DESKTOP,
-                onGrant = { host.grantControl(controlRequest.id) },
+                canRemember = !controlRequest.viaInternet && services.rememberedDevices != null,
+                onGrant = { remember -> host.grantControl(controlRequest.id, remember) },
                 onDeny = { host.denyControl(controlRequest.id) },
             )
         }
@@ -648,20 +649,48 @@ private fun RemoteControlCard(services: AppServices, state: HostState.Live) {
 }
 
 @Composable
-private fun ControlRequestDialog(viewer: ViewerInfo, desktop: Boolean, onGrant: () -> Unit, onDeny: () -> Unit) {
+private fun ControlRequestDialog(
+    viewer: ViewerInfo,
+    desktop: Boolean,
+    canRemember: Boolean,
+    onGrant: (remember: Boolean) -> Unit,
+    onDeny: () -> Unit,
+) {
+    var dontAskAgain by remember(viewer.id) { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = {},
         icon = { Icon(Icons.Outlined.TouchApp, contentDescription = null) },
         title = { Text(stringResource(Res.string.host_control_request_title)) },
         text = {
-            Text(
-                stringResource(
-                    if (desktop) Res.string.host_control_request_message_desktop else Res.string.host_control_request_message,
-                    viewer.deviceName,
-                ),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    stringResource(
+                        if (desktop) Res.string.host_control_request_message_desktop else Res.string.host_control_request_message,
+                        viewer.deviceName,
+                    ),
+                )
+                if (canRemember) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(value = dontAskAgain, role = Role.Checkbox, onValueChange = { dontAskAgain = it }),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = dontAskAgain, onCheckedChange = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(
+                                if (viewer.remembered) Res.string.host_control_request_remember else Res.string.host_control_request_remember_new,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
         },
-        confirmButton = { TextButton(onClick = onGrant) { Text(stringResource(Res.string.host_join_request_allow)) } },
+        confirmButton = {
+            TextButton(onClick = { onGrant(dontAskAgain) }) { Text(stringResource(Res.string.host_join_request_allow)) }
+        },
         dismissButton = { TextButton(onClick = onDeny) { Text(stringResource(Res.string.host_join_request_deny)) } },
     )
 }

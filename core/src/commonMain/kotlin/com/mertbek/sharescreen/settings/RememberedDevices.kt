@@ -15,9 +15,18 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlin.io.encoding.Base64
 
-/** A viewer this device lets in without asking when it shares on the local network. */
+/**
+ * A viewer this device lets in without asking when it shares on the local network, and with
+ * [control] also lets take control without asking.
+ */
 @Serializable
-data class RememberedViewer(val key: String, val name: String, val secret: String, val counter: Long = 0)
+data class RememberedViewer(
+    val key: String,
+    val name: String,
+    val secret: String,
+    val counter: Long = 0,
+    val control: Boolean = false,
+)
 
 @Serializable
 private data class RememberedHost(val hostId: String, val key: String, val secret: String, val counter: Long = 0)
@@ -38,12 +47,19 @@ class RememberedDevices(private val store: Settings) {
     private val hosts = MutableStateFlow(read(HOSTS, RememberedHost.serializer()))
 
     /** Remembers a viewer and returns what to hand it. */
-    fun rememberViewer(name: String): ControlMessage.Remember {
-        val viewer = RememberedViewer(key = newToken(ID_BYTES), name = name, secret = newToken(SECRET_BYTES))
+    fun rememberViewer(name: String, control: Boolean = false): ControlMessage.Remember {
+        val viewer = RememberedViewer(key = newToken(ID_BYTES), name = name, secret = newToken(SECRET_BYTES), control = control)
         _viewers.update { it + viewer }
         saveViewers()
         return ControlMessage.Remember(hostId, viewer.key, viewer.secret)
     }
+
+    fun allowControl(key: String, allowed: Boolean) {
+        _viewers.update { list -> list.map { if (it.key == key) it.copy(control = allowed) else it } }
+        saveViewers()
+    }
+
+    fun controlAllowed(key: String): Boolean = _viewers.value.any { it.key == key && it.control }
 
     fun forgetViewer(key: String) {
         _viewers.update { list -> list.filterNot { it.key == key } }

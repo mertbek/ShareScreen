@@ -52,6 +52,21 @@ class RememberedDevicesTest {
     }
 
     @Test
+    fun `control without asking is kept per viewer and can be taken back`() {
+        val tablet = host.rememberViewer("Tablet", control = true)
+        val phone = host.rememberViewer("Phone")
+        assertTrue(host.controlAllowed(tablet.key))
+        assertFalse(host.controlAllowed(phone.key))
+
+        host.allowControl(tablet.key, false)
+        host.allowControl(phone.key, true)
+        val again = RememberedDevices(hostStore)
+        assertFalse(again.controlAllowed(tablet.key))
+        assertTrue(again.controlAllowed(phone.key))
+        assertFalse(again.controlAllowed("unknown"))
+    }
+
+    @Test
     fun `a forgotten host gets no pass`() {
         viewer.rememberHost(host.rememberViewer("Tablet"))
         viewer.forgetHost(host.hostId)
