@@ -301,6 +301,75 @@ class RoomManagerTest {
         assertEquals("user2", (viewerLink.received.first() as Welcome).iceServers.single().username)
     }
 
+    @Test
+    fun `a room without a pin lets viewers ask without one`() = runTest {
+        val manager = lanManager()
+        val hostLink = FakeLink()
+        manager.join(hostLink, hostHello(pin = null))
+        hostLink.takeAll()
+
+        val viewer = assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+
+        assertEquals(messages(JoinRequest(viewer.id, "Viewer phone")), hostLink.received)
+    }
+
+    @Test
+    fun `without a pin a device asking again replaces its waiting request`() = runTest {
+        val manager = lanManager()
+        val hostLink = FakeLink()
+        val host = assertNotNull(manager.join(hostLink, hostHello(pin = null)))
+        val firstLink = FakeLink()
+        val first = assertNotNull(manager.join(firstLink, viewerHello(pin = null), "10.0.0.5"))
+        manager.join(FakeLink(), viewerHello(pin = null, name = "Other"), "10.0.0.6")
+        hostLink.takeAll()
+
+        val second = assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+
+        assertTrue(firstLink.closed)
+        assertEquals(messages(PeerLeft(first.id), JoinRequest(second.id, "Viewer phone")), hostLink.received)
+        manager.handle(host, JoinDecision(first.id, accepted = true))
+        assertTrue(firstLink.received.none { it is JoinDecision })
+    }
+
+    @Test
+    fun `without a pin a device the host turned down waits a minute before asking again`() = runTest {
+        val manager = lanManager()
+        val host = assertNotNull(manager.join(FakeLink(), hostHello(pin = null)))
+        val viewer = assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+        manager.handle(host, JoinDecision(viewer.id, accepted = false))
+
+        now = 59_000
+        val again = FakeLink()
+        assertNull(manager.join(again, viewerHello(pin = null), "10.0.0.5"))
+        assertEquals(messages(Error(ErrorCode.REJECTED)), again.received)
+        assertNotNull(manager.join(FakeLink(), viewerHello(pin = null, name = "Other"), "10.0.0.6"))
+
+        now = 60_000
+        assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+    }
+
+    @Test
+    fun `without a pin a removed viewer can ask again, as hosts also remove viewers whose connection failed`() = runTest {
+        val manager = lanManager()
+        val host = assertNotNull(manager.join(FakeLink(), hostHello(pin = null)))
+        val viewer = assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+        manager.handle(host, JoinDecision(viewer.id, accepted = true))
+        manager.handle(host, Kick(viewer.id))
+
+        assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+    }
+
+    @Test
+    fun `with a pin requests from one address wait side by side`() = runTest {
+        val manager = lanManager()
+        val host = assertNotNull(manager.join(FakeLink(), hostHello()))
+        val first = assertNotNull(manager.join(FakeLink(), viewerHello(), "10.0.0.5"))
+        manager.join(FakeLink(), viewerHello(), "10.0.0.5")
+        manager.handle(host, JoinDecision(first.id, accepted = false))
+
+        assertNotNull(manager.join(FakeLink(), viewerHello(), "10.0.0.5"))
+    }
+
     private fun lockingManager(clock: () -> Long) = RoomManager(
         SignalingConfig(singleRoom = true, hostSecret = SECRET, maxWrongPinsPerMinute = 3),
         clockMillis = clock,

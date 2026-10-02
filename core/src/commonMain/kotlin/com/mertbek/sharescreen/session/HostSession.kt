@@ -104,14 +104,16 @@ class HostSession(
     private val offers = HashMap<String, String>()
     private var allowControl = false
     private var controlAvailable = false
+    private var lanPin = false
 
-    fun start(media: CapturedMedia, internetServer: String?, allowControl: Boolean) {
+    fun start(media: CapturedMedia, internetServer: String?, allowControl: Boolean, lanPin: Boolean = false) {
         scope.launch {
             if (sessionScope != null) return@launch
             val session = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext.job))
             sessionScope = session
             this@HostSession.media = media
             this@HostSession.allowControl = allowControl && inputInjector != null
+            this@HostSession.lanPin = lanPin
             controlAvailable = false
             session.launch { run(internetServer) }
             if (this@HostSession.allowControl) session.launch { followControlAvailability() }
@@ -203,7 +205,7 @@ class HostSession(
                 lan = Link(
                     signalingClient.connect(
                         lanSignalingUrl(LOOPBACK, port),
-                        SignalMessage.Hello(PeerRole.HOST, deviceName.value, pin = pin, hostSecret = hostSecret),
+                        SignalMessage.Hello(PeerRole.HOST, deviceName.value, pin = pin.takeIf { lanPin }, hostSecret = hostSecret),
                     ),
                     viaInternet = false,
                 )
@@ -215,10 +217,11 @@ class HostSession(
                 addresses = localAddresses?.ipv4Addresses().orEmpty(),
                 port = port,
                 pin = pin,
+                lanPin = lanPin,
                 internetRoom = internetServer?.let(InternetRoom::Connecting),
                 remoteControl = remoteControlAvailability(),
             )
-            if (lan != null) lanAdvertiser?.register(deviceName.value, port)
+            if (lan != null) lanAdvertiser?.register(deviceName.value, port, pinRequired = lanPin)
             coroutineScope {
                 val internet = internetServer?.let { launch { runInternet(it, pin) } }
                 if (lan != null) {

@@ -44,6 +44,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -68,6 +70,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -101,6 +104,8 @@ import com.mertbek.sharescreen.control.fitVideo
 import com.mertbek.sharescreen.control.mapToPicture
 import com.mertbek.sharescreen.control.toJoinTarget
 import com.mertbek.sharescreen.link.ConnectLink
+import com.mertbek.sharescreen.link.PIN_LENGTH
+import com.mertbek.sharescreen.link.isValidPin
 import com.mertbek.sharescreen.rtc.StreamInfo
 import com.mertbek.sharescreen.session.ControlNotice
 import com.mertbek.sharescreen.session.ControlStatus
@@ -119,9 +124,10 @@ import kotlinx.coroutines.delay
 @Composable
 fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
     var attempt by remember { mutableStateOf(0) }
+    var pin by remember { mutableStateOf(link.pin) }
     val session = remember(attempt) { services.newViewer() }
     DisposableEffect(session) {
-        session.connect(link.toJoinTarget(), link.pin)
+        session.connect(link.toJoinTarget(), pin)
         onDispose { session.close() }
     }
     val state by session.state.collectAsState()
@@ -215,7 +221,12 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
                 }
                 is ViewerState.Ended -> EndedMessage(
                     current.reason,
+                    pinGiven = pin != null,
                     onRetry = { attempt++ },
+                    onPin = {
+                        pin = it
+                        attempt++
+                    },
                     onBack = onBack,
                 )
                 ViewerState.Connecting -> Progress(stringResource(Res.string.viewer_connecting))
@@ -572,10 +583,16 @@ private fun Progress(message: String) {
 }
 
 @Composable
-private fun EndedMessage(reason: EndReason, onRetry: () -> Unit, onBack: () -> Unit) {
+private fun EndedMessage(
+    reason: EndReason,
+    pinGiven: Boolean,
+    onRetry: () -> Unit,
+    onPin: (String) -> Unit,
+    onBack: () -> Unit,
+) {
     val message = when (reason) {
         EndReason.CONNECTION_FAILED -> Res.string.viewer_end_connection_failed
-        EndReason.INVALID_PIN -> Res.string.viewer_end_invalid_pin
+        EndReason.INVALID_PIN -> if (pinGiven) Res.string.viewer_end_invalid_pin else Res.string.viewer_end_pin_needed
         EndReason.TOO_MANY_ATTEMPTS -> Res.string.viewer_end_too_many_attempts
         EndReason.REJECTED -> Res.string.viewer_end_rejected
         EndReason.ROOM_FULL -> Res.string.viewer_end_room_full
@@ -607,14 +624,46 @@ private fun EndedMessage(reason: EndReason, onRetry: () -> Unit, onBack: () -> U
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (canRetry) {
-                OutlinedButton(onClick = onBack) { Text(stringResource(Res.string.action_back)) }
-                Button(onClick = onRetry) { Text(stringResource(Res.string.viewer_retry)) }
-            } else {
-                Button(onClick = onBack) { Text(stringResource(Res.string.action_back)) }
+        if (reason == EndReason.INVALID_PIN) {
+            PinEntry(onPin = onPin, onBack = onBack)
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (canRetry) {
+                    OutlinedButton(onClick = onBack) { Text(stringResource(Res.string.action_back)) }
+                    Button(onClick = onRetry) { Text(stringResource(Res.string.viewer_retry)) }
+                } else {
+                    Button(onClick = onBack) { Text(stringResource(Res.string.action_back)) }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun PinEntry(onPin: (String) -> Unit, onBack: () -> Unit) {
+    var pin by remember { mutableStateOf("") }
+    val connect = { if (isValidPin(pin)) onPin(pin) }
+    OutlinedTextField(
+        value = pin,
+        onValueChange = { pin = it.filter(Char::isDigit).take(PIN_LENGTH) },
+        label = { Text(stringResource(Res.string.discover_pin_label)) },
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Go),
+        keyboardActions = KeyboardActions(onGo = { connect() }),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedBorderColor = Color.White,
+            unfocusedBorderColor = Color.White.copy(alpha = 0.6f),
+            focusedLabelColor = Color.White,
+            unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+            cursorColor = Color.White,
+        ),
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        OutlinedButton(onClick = onBack) { Text(stringResource(Res.string.action_back)) }
+        Button(onClick = connect, enabled = isValidPin(pin)) { Text(stringResource(Res.string.discover_connect)) }
     }
 }
 

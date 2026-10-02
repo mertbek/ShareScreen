@@ -15,13 +15,14 @@ fun isValidPin(value: String): Boolean = value.length == PIN_LENGTH && value.all
 fun isValidRoomCode(value: String): Boolean = value.length == ROOM_CODE_LENGTH && value.all(Char::isLetterOrDigit)
 
 sealed interface ConnectLink {
-    val pin: String
+    val pin: String?
     val name: String?
     val address: String
 
     fun toUri(): String
 
-    data class Lan(val host: String, val port: Int, override val pin: String, override val name: String? = null) : ConnectLink {
+    /** A local network link carries a PIN only when the sharing device asks for one. */
+    data class Lan(val host: String, val port: Int, override val pin: String?, override val name: String? = null) : ConnectLink {
         override val address get() = "$host:$port"
 
         override fun toUri(): String = uri(LAN_AUTHORITY, "h" to host, "p" to port.toString(), "pin" to pin, "n" to name)
@@ -57,7 +58,8 @@ sealed interface ConnectLink {
             if (uri.scheme.equals("https", ignoreCase = true)) return parseWeb(uri)
             if (!uri.scheme.equals(SCHEME, ignoreCase = true)) return null
             val params = parseParameters(uri.rawQuery)
-            val pin = params["pin"]?.takeIf(::isValidPin) ?: return null
+            val pin = params["pin"]
+            if (pin != null && !isValidPin(pin)) return null
             val name = params["n"]?.trim()?.takeIf { it.isNotEmpty() }
             return when (uri.host) {
                 LAN_AUTHORITY -> {
@@ -68,7 +70,7 @@ sealed interface ConnectLink {
                 INTERNET_AUTHORITY -> {
                     val server = params["s"]?.let(ServerAddress::normalize) ?: return null
                     val roomCode = params["r"]?.uppercase()?.takeIf(::isValidRoomCode) ?: return null
-                    Internet(server, roomCode, pin, name)
+                    Internet(server, roomCode, pin ?: return null, name)
                 }
                 else -> null
             }

@@ -145,7 +145,14 @@ fun DiscoverScreen(
                         Text(stringResource(Res.string.discover_scan_qr))
                     }
                 }
-                if (browser != null) NearbyHostsCard(hosts = hosts, onSelect = { selectedHost = it })
+                if (browser != null) {
+                    NearbyHostsCard(
+                        hosts = hosts,
+                        onSelect = { host ->
+                            if (host.pinRequired) selectedHost = host else onConnect(ConnectLink.Lan(host.host, host.port, null, host.name))
+                        },
+                    )
+                }
                 InternetJoinCard(
                     server = internetServer,
                     onJoin = { roomCode, pin -> internetServer?.let { onConnect(ConnectLink.Internet(it, roomCode, pin)) } },
@@ -256,15 +263,15 @@ private fun PinDialog(host: DiscoveredHost, onConnect: (String) -> Unit, onDismi
 }
 
 @Composable
-private fun ManualConnectCard(onConnect: (host: String, port: Int, pin: String) -> Unit) {
+private fun ManualConnectCard(onConnect: (host: String, port: Int, pin: String?) -> Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var host by rememberSaveable { mutableStateOf("") }
     var port by rememberSaveable { mutableStateOf("") }
     var pin by rememberSaveable { mutableStateOf("") }
 
     val portNumber = port.toIntOrNull()?.takeIf { it in 1..65535 }
-    val canConnect = isIpv4Address(host.trim()) && portNumber != null && isValidPin(pin)
-    val connect = { if (canConnect) onConnect(host.trim(), portNumber, pin) }
+    val canConnect = isIpv4Address(host.trim()) && portNumber != null && (pin.isEmpty() || isValidPin(pin))
+    val connect = { if (canConnect) onConnect(host.trim(), portNumber, pin.ifEmpty { null }) }
 
     SoftCard {
         Row(
@@ -319,7 +326,7 @@ private fun ManualConnectCard(onConnect: (host: String, port: Int, pin: String) 
                 OutlinedTextField(
                     value = pin,
                     onValueChange = { pin = it.filter(Char::isDigit).take(PIN_LENGTH) },
-                    label = { Text(stringResource(Res.string.discover_pin_label)) },
+                    label = { Text(stringResource(Res.string.discover_pin_optional_label)) },
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Go),

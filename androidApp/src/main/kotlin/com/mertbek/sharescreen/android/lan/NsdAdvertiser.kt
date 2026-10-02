@@ -9,6 +9,7 @@ import com.mertbek.sharescreen.util.Log
 
 internal const val NSD_SERVICE_TYPE = "_sharescreen._tcp"
 internal const val NSD_ATTRIBUTE_PROTOCOL = "v"
+internal const val NSD_ATTRIBUTE_PIN = "pin"
 
 class NsdAdvertiser(context: Context) : LanAdvertiser {
 
@@ -16,13 +17,14 @@ class NsdAdvertiser(context: Context) : LanAdvertiser {
     private var listener: NsdManager.RegistrationListener? = null
 
     @Synchronized
-    override fun register(name: String, port: Int) {
+    override fun register(name: String, port: Int, pinRequired: Boolean) {
         unregister()
         val info = NsdServiceInfo().apply {
             serviceName = name
             serviceType = NSD_SERVICE_TYPE
             this.port = port
             setAttribute(NSD_ATTRIBUTE_PROTOCOL, PROTOCOL_VERSION.toString())
+            setAttribute(NSD_ATTRIBUTE_PIN, if (pinRequired) "1" else "0")
         }
         val listener = object : NsdManager.RegistrationListener {
             override fun onServiceRegistered(info: NsdServiceInfo) {

@@ -22,6 +22,13 @@ class ConnectLinkTest {
     }
 
     @Test
+    fun `lan links leave the pin out when the sharing device does not ask for one`() {
+        val link = ConnectLink.Lan(host = "10.0.0.5", port = 8080, pin = null, name = "Tablet")
+        assertEquals("sharescreen://connect?h=10.0.0.5&p=8080&n=Tablet", link.toUri())
+        assertEquals(link, ConnectLink.parse(link.toUri()))
+    }
+
+    @Test
     fun `internet links round-trip`() {
         val link = ConnectLink.Internet(server = "wss://share.example.com:8443", roomCode = "ABC234", pin = "000001", name = "Tablet")
         assertEquals(link, ConnectLink.parse(link.toUri()))
@@ -55,7 +62,8 @@ class ConnectLinkTest {
             "sharescreen://connect?h=192.168.1.2&p=70000&pin=123456",
             "sharescreen://connect?h=192.168.1.2&p=5000&pin=12345",
             "sharescreen://connect?h=192.168.1.2&p=5000&pin=12a456",
-            "sharescreen://connect?h=192.168.1.2&p=5000",
+            "sharescreen://connect?h=192.168.1.2&p=5000&pin=",
+            "sharescreen://join?s=x.test&r=ABC234",
             "sharescreen://join?s=ftp%3A%2F%2Fx.test&r=ABC234&pin=123456",
             "sharescreen://join?s=x.test&r=ABC&pin=123456",
             "sharescreen://join?r=ABC234&pin=123456",

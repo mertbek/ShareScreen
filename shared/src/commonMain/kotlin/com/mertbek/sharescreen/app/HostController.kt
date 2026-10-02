@@ -33,7 +33,7 @@ class HostController(private val services: AppServices) {
                 null
             } ?: return@launch
             _media.value = captured
-            services.host.start(captured, settings.internetServer, allowControl)
+            services.host.start(captured, settings.internetServer, allowControl, lanPin = settings.lanPin)
         }
     }
 

@@ -103,6 +103,7 @@ fun App(
                 )
                 Screen.Settings -> SettingsScreen(
                     repository = services.settings,
+                    canShareNearby = services.lanServer != null,
                     canBeControlled = services.canBeControlled,
                     versionName = services.versionName,
                     privacyUrl = services.settings.settings.value.defaultServer?.let {

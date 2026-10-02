@@ -66,6 +66,11 @@ first Android app. New control messages are additive and ignored by older peers:
 
 An Android host maps pointer input to gestures; a desktop host maps touches to mouse input.
 
+A host on the local network announces `pin=0` or `pin=1` next to the protocol version in its
+mDNS record. Viewers treat a record without it as an older host that wants the PIN, and a viewer
+that joins without a PIN is asked for one when the host answers `invalid_pin`. Older viewers
+always send a PIN, which a room without one ignores.
+
 ## Media
 
 - Codec: H.264 where both sides offer it, VP8 otherwise.

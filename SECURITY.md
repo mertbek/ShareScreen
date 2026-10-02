@@ -11,6 +11,10 @@ Only the latest release is supported.
 
 Known limits by design:
 
+- On the local network a viewer needs only your approval. Anyone on the same network can ask,
+  one request per device at a time, and a device you turn down waits a minute before asking
+  again. "Ask nearby viewers for the PIN" in the settings adds the PIN for networks you
+  share with others.
 - Signaling on the local network is not encrypted, so the PIN can be read by someone else on
   that network. Use it on networks you trust.
 - A viewer you allow to control a device controls all of it. On a computer that includes

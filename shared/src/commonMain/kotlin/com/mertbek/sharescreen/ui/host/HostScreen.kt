@@ -354,16 +354,26 @@ private fun ConnectionSection(services: AppServices, state: HostState) {
 
 @Composable
 private fun NearbyDetails(state: HostState.Live) {
+    val pin = state.pin.takeIf { state.lanPin }
     val primaryAddress = state.addresses.firstOrNull()
     if (primaryAddress == null) {
         Text(text = stringResource(Res.string.host_no_network), color = MaterialTheme.colorScheme.error)
     } else {
-        LinkQrCode(ConnectLink.Lan(primaryAddress, state.port, state.pin, state.deviceName).toUri())
+        LinkQrCode(ConnectLink.Lan(primaryAddress, state.port, pin, state.deviceName).toUri())
     }
     state.addresses.forEach { address ->
         CodeChip(stringResource(Res.string.host_address_label), "$address:${state.port}", AddressTextStyle)
     }
-    CodeChip(stringResource(Res.string.host_pin_label), state.pin.chunked(3).joinToString(" "))
+    if (pin != null) {
+        CodeChip(stringResource(Res.string.host_pin_label), pin.chunked(3).joinToString(" "))
+    } else {
+        Text(
+            text = stringResource(Res.string.host_nearby_no_pin),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @Composable

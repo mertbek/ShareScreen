@@ -42,6 +42,7 @@ class Member internal constructor(
     val roomCode: String,
     internal val resumeToken: String,
     link: PeerLink,
+    internal val address: String? = null,
 ) {
     internal var approved: Boolean = role == PeerRole.HOST
 
@@ -91,6 +92,9 @@ private class Room(val code: String, val pin: String?, val host: Member) {
 
     /** When each address last gave a wrong PIN; null stands for connections whose address is unknown. */
     val wrongPinAddresses = HashMap<String?, Long>()
+
+    /** When the host last turned down a request from each address, in a room without a PIN. */
+    val refusedAddresses = HashMap<String, Long>()
 
     val viewers = LinkedHashMap<String, Member>()
 
@@ -177,11 +181,17 @@ class RoomManager(
             room.wrongPinAddresses[address] = now
             return refuse(link, ErrorCode.INVALID_PIN)
         }
+        if (room.pin == null && address != null) {
+            room.refusedAddresses.values.removeAll { now - it >= REFUSED_WAIT_MILLIS }
+            if (address in room.refusedAddresses) return refuse(link, ErrorCode.REJECTED)
+            // Without a PIN anyone nearby can ask, so each device has one request at a time and a new one replaces it.
+            room.waiting().firstOrNull { it.address == address }?.let { withdraw(room, it) }
+        }
         if (room.watching() >= config.maxViewersPerRoom || room.waiting().size >= config.maxWaitingPerRoom) {
             return refuse(link, ErrorCode.ROOM_FULL)
         }
 
-        val viewer = newMember(PeerRole.VIEWER, deviceName, room.code, link)
+        val viewer = newMember(PeerRole.VIEWER, deviceName, room.code, link, address)
         room.viewers[viewer.id] = viewer
         link.send(welcome(viewer, hostId = room.host.id))
         room.host.send(JoinRequest(viewerId = viewer.id, deviceName = deviceName))
@@ -206,9 +216,16 @@ class RoomManager(
             if (room.watching() >= config.maxViewersPerRoom) room.waiting().forEach { turnAway(room, it) }
         } else {
             forget(room, viewer)
+            if (room.pin == null && viewer.address != null) room.refusedAddresses[viewer.address] = clockMillis()
             viewer.send(Error(ErrorCode.REJECTED))
             viewer.close()
         }
+    }
+
+    private fun withdraw(room: Room, viewer: Member) {
+        forget(room, viewer)
+        viewer.close()
+        room.host.send(PeerLeft(viewer.id))
     }
 
     private fun turnAway(room: Room, viewer: Member) {
@@ -269,8 +286,8 @@ class RoomManager(
         target.send(message.withFrom(sender.id))
     }
 
-    private fun newMember(role: PeerRole, deviceName: String, roomCode: String, link: PeerLink): Member =
-        Member(newPeerId(), role, deviceName, roomCode, newResumeToken(), link).also { membersByToken[it.resumeToken] = it }
+    private fun newMember(role: PeerRole, deviceName: String, roomCode: String, link: PeerLink, address: String? = null): Member =
+        Member(newPeerId(), role, deviceName, roomCode, newResumeToken(), link, address).also { membersByToken[it.resumeToken] = it }
 
     private fun welcome(member: Member, hostId: String, resumed: Boolean = false) = Welcome(
         peerId = member.id,
@@ -300,6 +317,7 @@ class RoomManager(
         private const val MAX_DEVICE_NAME_LENGTH = 40
         private const val PIN_WINDOW_MILLIS = 60_000L
         private const val MAX_GUESSING_ADDRESSES = 256
+        private const val REFUSED_WAIT_MILLIS = 60_000L
         private val EXPIRY_INTERVAL = 5.seconds
     }
 }

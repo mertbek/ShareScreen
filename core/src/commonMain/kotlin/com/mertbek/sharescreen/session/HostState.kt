@@ -35,6 +35,8 @@ sealed interface HostState {
         val addresses: List<String>,
         val port: Int,
         val pin: String,
+        /** Whether viewers on the local network need the PIN too; over the internet they always do. */
+        val lanPin: Boolean = false,
         val internetRoom: InternetRoom? = null,
         val viewers: List<ViewerInfo> = emptyList(),
         val pendingViewers: List<PendingViewer> = emptyList(),

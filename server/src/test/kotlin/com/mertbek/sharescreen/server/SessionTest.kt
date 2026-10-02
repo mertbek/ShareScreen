@@ -32,6 +32,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
@@ -104,7 +105,7 @@ class SessionTest {
         val viewer = ViewerSession(engine, SignalingClient(cioClient()), DeviceName("Viewer"))
         val allow = allowControl
 
-        fun start() = host.start(FakeMedia(hasAudio = true), internetServer = null, allowControl = allow)
+        fun start(lanPin: Boolean = false) = host.start(FakeMedia(hasAudio = true), internetServer = null, allowControl = allow, lanPin = lanPin)
     }
 
     private suspend fun Setup.connectViewer(): HostState.Live {
@@ -132,14 +133,32 @@ class SessionTest {
     }
 
     @Test
-    fun `wrong pin ends the viewer session`() = runBlocking {
+    fun `a nearby viewer asks to watch without a pin`() = runBlocking {
         val setup = Setup(allowControl = false)
         setup.start()
         val live = eventually { setup.host.state.value as? HostState.Live }
+        assertFalse(live.lanPin)
+
+        setup.viewer.connect(JoinTarget.Lan("127.0.0.1", live.port), pin = null)
+        setup.host.approve(eventually { (setup.host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }.id)
+        eventually { setup.viewer.state.value as? ViewerState.Watching }
+
+        setup.viewer.close()
+        setup.host.stop().join()
+    }
+
+    @Test
+    fun `a host that asks nearby viewers for the pin turns away a wrong or missing one`() = runBlocking {
+        val setup = Setup(allowControl = false)
+        setup.start(lanPin = true)
+        val live = eventually { setup.host.state.value as? HostState.Live }
+        assertTrue(live.lanPin)
 
         setup.viewer.connect(JoinTarget.Lan("127.0.0.1", live.port), "000000".takeIf { it != live.pin } ?: "111111")
-        val ended = eventually { setup.viewer.state.value as? ViewerState.Ended }
-        assertEquals(EndReason.INVALID_PIN, ended.reason)
+        assertEquals(EndReason.INVALID_PIN, eventually { setup.viewer.state.value as? ViewerState.Ended }.reason)
+        val withoutPin = ViewerSession(setup.engine, SignalingClient(cioClient()), DeviceName("Viewer"))
+        withoutPin.connect(JoinTarget.Lan("127.0.0.1", live.port), pin = null)
+        assertEquals(EndReason.INVALID_PIN, eventually { withoutPin.state.value as? ViewerState.Ended }.reason)
 
         setup.host.stop().join()
     }

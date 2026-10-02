@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.Button
@@ -67,6 +68,7 @@ import com.mertbek.sharescreen.ui.components.SoftCard
 @Composable
 fun SettingsScreen(
     repository: SettingsRepository,
+    canShareNearby: Boolean,
     canBeControlled: Boolean,
     versionName: String,
     privacyUrl: String?,
@@ -124,6 +126,16 @@ fun SettingsScreen(
                         checked = settings.shareAudio,
                         onCheckedChange = repository::setShareAudio,
                     )
+                    if (canShareNearby) {
+                        HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        SwitchRow(
+                            icon = Icons.Outlined.Lock,
+                            title = stringResource(Res.string.settings_lan_pin_title),
+                            description = stringResource(Res.string.settings_lan_pin_description),
+                            checked = settings.lanPin,
+                            onCheckedChange = repository::setLanPin,
+                        )
+                    }
                     if (canBeControlled) {
                         HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
                         SwitchRow(

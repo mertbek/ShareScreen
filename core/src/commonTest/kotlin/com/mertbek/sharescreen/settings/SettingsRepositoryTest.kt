@@ -12,6 +12,7 @@ class SettingsRepositoryTest {
         val settings = SettingsRepository(MapSettings(), DEFAULT).settings.value
         assertEquals(VideoQuality.STANDARD, settings.quality)
         assertEquals(DEFAULT, settings.internetServer)
+        assertEquals(false, settings.lanPin)
     }
 
     @Test
@@ -30,12 +31,14 @@ class SettingsRepositoryTest {
         repository.setQuality(VideoQuality.HIGH)
         repository.setShareAudio(false)
         repository.setAllowRemoteControl(true)
+        repository.setLanPin(true)
         repository.setCustomServer("wss://example.com")
 
         val current = repository.settings.value
         assertEquals(VideoQuality.HIGH, current.quality)
         assertEquals(false, current.shareAudio)
         assertEquals(true, current.allowRemoteControl)
+        assertEquals(true, current.lanPin)
         assertEquals("wss://example.com", current.internetServer)
         assertEquals(current, SettingsRepository(store).settings.value)
     }

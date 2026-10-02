@@ -20,6 +20,7 @@
     <string name="host_starting">Başlatılıyor…</string>
     <string name="host_address_label">Adres</string>
     <string name="host_pin_label">PIN</string>
+    <string name="host_nearby_no_pin">Bu ağdaki cihazlar PIN girmeden izleme isteği gönderebilir. Her isteği sen onaylarsın.</string>
     <string name="host_qr_description">Bu cihaza bağlanmak için QR kod</string>
     <string name="host_tab_nearby">Yakında</string>
     <string name="host_tab_internet">İnternet</string>
@@ -82,17 +83,18 @@
     <string name="discover_scan_qr">QR kodu tara</string>
     <string name="discover_qr_prompt">Paylaşım yapan cihazdaki QR kodu okut</string>
     <string name="discover_qr_invalid">Bu bir ShareScreen QR kodu değil.</string>
-    <string name="discover_camera_denied">QR taramak için kamera izni gerekiyor. Listeden ya da adres ve PIN ile de bağlanabilirsin.</string>
+    <string name="discover_camera_denied">QR taramak için kamera izni gerekiyor. Listeden ya da adresle de bağlanabilirsin.</string>
     <string name="discover_manual_title">Ya da elle gir</string>
     <string name="discover_internet_title">İnternet üzerinden katıl</string>
     <string name="discover_internet_description">Paylaşım yapan cihazda görünen oda kodunu ve PIN'i gir.</string>
     <string name="discover_internet_no_server">İnternet paylaşımı kapalı. Başka ağlardaki cihazlara katılmak için ayarlardan aç.</string>
     <string name="discover_room_code_label">Oda kodu</string>
     <string name="discover_internet_join">Katıl</string>
-    <string name="discover_manual_description">Paylaşım yapan cihazın ekranında görünen adresi ve PIN'i gir.</string>
+    <string name="discover_manual_description">Paylaşım yapan cihazın ekranında görünen adresi, PIN görünüyorsa onu da gir.</string>
     <string name="discover_ip_label">IP adresi</string>
     <string name="discover_port_label">Port</string>
     <string name="discover_pin_label">PIN</string>
+    <string name="discover_pin_optional_label">PIN (görünüyorsa)</string>
     <string name="discover_connect">Bağlan</string>
 '
     <string name="link_confirm_title">%1$s izlensin mi?</string>
@@ -109,6 +111,7 @@
     <string name="viewer_info_latency">%1$d ms</string>
     <string name="viewer_end_connection_failed">Bağlanılamadı. Adresi ve iki cihazın aynı ağda olduğunu kontrol et.</string>
     <string name="viewer_end_invalid_pin">PIN yanlış.</string>
+    <string name="viewer_end_pin_needed">Bu cihaz PIN istiyor. Ekranında görünen PIN'i gir.</string>
     <string name="viewer_end_too_many_attempts">Çok fazla yanlış PIN denendi. Bir dakika bekleyip tekrar dene.</string>
     <string name="viewer_end_rejected">Diğer cihaz isteği reddetti.</string>
     <string name="viewer_end_room_full">Bu ekranı izleyen cihaz sayısı dolu.</string>
@@ -120,6 +123,8 @@
 '
 '
     <string name="settings_control_title">Uzaktan kontrole izin ver</string>
+    <string name="settings_lan_pin_title">Yakındaki izleyicilerden PIN iste</string>
+    <string name="settings_lan_pin_description">Aynı Wi-Fi'daki cihazlar da onayının yanında PIN girmek zorunda kalır. Kafe ya da ofis gibi başkalarının da kullandığı bir ağda paylaşırken aç.</string>
     <string name="settings_control_description">İzleyiciler bu cihazı kontrol etmek isteyebilir. Her isteği sen onaylarsın ve kontrolü istediğin an geri alabilirsin. Her zaman tüm ekran paylaşılır.</string>
     <string name="host_control_title">Uzaktan kontrol</string>
     <string name="host_control_needs_service">İzleyicilerin bu cihazı kontrol edebilmesi için erişilebilirlik ayarlarından ShareScreen uzaktan kontrolü aç.</string>

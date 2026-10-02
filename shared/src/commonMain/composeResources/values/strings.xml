@@ -22,6 +22,7 @@
     <string name="host_starting">Starting…</string>
     <string name="host_address_label">Address</string>
     <string name="host_pin_label">PIN</string>
+    <string name="host_nearby_no_pin">Devices on this network can ask to watch without a PIN. You approve each request.</string>
     <string name="host_qr_description">QR code for connecting to this device</string>
     <string name="host_tab_nearby">Nearby</string>
     <string name="host_tab_internet">Internet</string>
@@ -84,17 +85,18 @@
     <string name="discover_scan_qr">Scan QR code</string>
     <string name="discover_qr_prompt">Scan the QR code shown on the sharing device</string>
     <string name="discover_qr_invalid">This is not a ShareScreen QR code.</string>
-    <string name="discover_camera_denied">Scanning needs camera access. You can also connect from the list or with the address and PIN.</string>
+    <string name="discover_camera_denied">Scanning needs camera access. You can also connect from the list or with the address.</string>
     <string name="discover_manual_title">Or enter manually</string>
     <string name="discover_internet_title">Join over the internet</string>
     <string name="discover_internet_description">Enter the room code and PIN shown on the sharing device.</string>
     <string name="discover_internet_no_server">Internet sharing is turned off. Turn it on in settings to join devices on other networks.</string>
     <string name="discover_room_code_label">Room code</string>
     <string name="discover_internet_join">Join</string>
-    <string name="discover_manual_description">Enter the address and PIN shown on the sharing device.</string>
+    <string name="discover_manual_description">Enter the address shown on the sharing device, and its PIN if it shows one.</string>
     <string name="discover_ip_label">IP address</string>
     <string name="discover_port_label">Port</string>
     <string name="discover_pin_label">PIN</string>
+    <string name="discover_pin_optional_label">PIN (if one is shown)</string>
     <string name="discover_connect">Connect</string>
 '
     <string name="link_confirm_title">Watch %1$s?</string>
@@ -111,6 +113,7 @@
     <string name="viewer_info_latency">%1$d ms</string>
     <string name="viewer_end_connection_failed">Could not connect. Check the address and that both devices are on the same network.</string>
     <string name="viewer_end_invalid_pin">Wrong PIN.</string>
+    <string name="viewer_end_pin_needed">This device asks for a PIN. Enter the PIN shown on it.</string>
     <string name="viewer_end_too_many_attempts">Too many wrong PINs were tried. Wait a minute and try again.</string>
     <string name="viewer_end_rejected">The other device denied the request.</string>
     <string name="viewer_end_room_full">Too many devices are already watching.</string>
@@ -122,6 +125,8 @@
 '
 '
     <string name="settings_control_title">Allow remote control</string>
+    <string name="settings_lan_pin_title">Ask nearby viewers for the PIN</string>
+    <string name="settings_lan_pin_description">Devices on the same Wi-Fi then need the PIN as well as your approval. Turn this on when you share on a network others use too, like a café or an office.</string>
     <string name="settings_control_description">Viewers can ask to control this device. You approve each request and can take control back at any time. The whole screen is always shared.</string>
     <string name="host_control_title">Remote control</string>
     <string name="host_control_needs_service">To let viewers control this device, turn on ShareScreen remote control in the accessibility settings.</string>

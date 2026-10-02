@@ -132,7 +132,7 @@ class ViewerSession(
     private var isConnected = false
     private var iceServers: List<IceServerConfig> = emptyList()
 
-    fun connect(target: JoinTarget, pin: String) {
+    fun connect(target: JoinTarget, pin: String?) {
         scope.launch { run(target, pin) }
     }
 
@@ -187,7 +187,7 @@ class ViewerSession(
         }
     }
 
-    private suspend fun run(target: JoinTarget, pin: String) {
+    private suspend fun run(target: JoinTarget, pin: String?) {
         var connection = try {
             withTimeout(CONNECT_TIMEOUT) {
                 signalingClient.connect(

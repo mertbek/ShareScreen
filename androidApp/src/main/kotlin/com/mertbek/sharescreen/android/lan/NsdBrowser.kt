@@ -194,7 +194,8 @@ class NsdBrowser(
                 listOfNotNull(host)
             }
             val address = addresses.filterIsInstance<Inet4Address>().firstOrNull()?.hostAddress ?: return null
-            return DiscoveredHost(name = serviceName, host = address, port = port)
+            val pinRequired = attributes[NSD_ATTRIBUTE_PIN]?.decodeToString() != "0"
+            return DiscoveredHost(name = serviceName, host = address, port = port, pinRequired = pinRequired)
         }
     }
 }

@@ -19,6 +19,7 @@ data class SharingSettings(
     val customServer: String? = null,
     val defaultServer: String? = null,
     val allowRemoteControl: Boolean = false,
+    val lanPin: Boolean = false,
 ) {
     val internetServer: String? get() = if (internetEnabled) customServer ?: defaultServer else null
 }
@@ -35,6 +36,8 @@ class SettingsRepository(private val store: Settings, private val defaultServer:
     fun setAllowRemoteControl(allow: Boolean) = change { store.putBoolean(ALLOW_REMOTE_CONTROL, allow) }
 
     fun setInternetEnabled(enabled: Boolean) = change { store.putBoolean(INTERNET_ENABLED, enabled) }
+
+    fun setLanPin(required: Boolean) = change { store.putBoolean(LAN_PIN, required) }
 
     fun setCustomServer(server: String?) = change {
         if (server == null) store.remove(INTERNET_SERVER) else store.putString(INTERNET_SERVER, server)
@@ -54,6 +57,7 @@ class SettingsRepository(private val store: Settings, private val defaultServer:
         customServer = store.getStringOrNull(INTERNET_SERVER),
         defaultServer = defaultServer,
         allowRemoteControl = store.getBoolean(ALLOW_REMOTE_CONTROL, false),
+        lanPin = store.getBoolean(LAN_PIN, false),
     )
 
     private companion object {
@@ -62,5 +66,6 @@ class SettingsRepository(private val store: Settings, private val defaultServer:
         const val INTERNET_ENABLED = "internet_enabled"
         const val INTERNET_SERVER = "internet_server"
         const val ALLOW_REMOTE_CONTROL = "allow_remote_control"
+        const val LAN_PIN = "lan_pin"
     }
 }

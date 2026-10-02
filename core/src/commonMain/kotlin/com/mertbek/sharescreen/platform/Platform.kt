@@ -16,11 +16,12 @@ interface LocalAddressProvider {
 }
 
 interface LanAdvertiser {
-    fun register(name: String, port: Int)
+    fun register(name: String, port: Int, pinRequired: Boolean)
     fun unregister()
 }
 
-data class DiscoveredHost(val name: String, val host: String, val port: Int)
+/** A host that does not say whether it needs a PIN runs an older version, which always does. */
+data class DiscoveredHost(val name: String, val host: String, val port: Int, val pinRequired: Boolean = true)
 
 interface LanBrowser {
     val hosts: StateFlow<List<DiscoveredHost>>
