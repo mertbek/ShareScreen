@@ -42,8 +42,14 @@ class RoomManagerTest {
 
     private var nextId = 0
     private var now = 0L
-    private fun lanManager(maxViewers: Int = 4) = RoomManager(
-        SignalingConfig(singleRoom = true, hostSecret = SECRET, maxViewersPerRoom = maxViewers, resumeGraceMillis = GRACE),
+    private fun lanManager(maxViewers: Int = 4, maxWaiting: Int = 8) = RoomManager(
+        SignalingConfig(
+            singleRoom = true,
+            hostSecret = SECRET,
+            maxViewersPerRoom = maxViewers,
+            maxWaitingPerRoom = maxWaiting,
+            resumeGraceMillis = GRACE,
+        ),
         newPeerId = { "peer${++nextId}" },
         clockMillis = { now },
     )
@@ -174,10 +180,53 @@ class RoomManagerTest {
     }
 
     @Test
-    fun `room is full when max viewers are connected`() = runTest {
+    fun `room is full when max viewers are watching`() = runTest {
         val manager = lanManager(maxViewers = 1)
+        val host = assertNotNull(manager.join(FakeLink(), hostHello()))
+        val viewer = assertNotNull(manager.join(FakeLink(), viewerHello()))
+        manager.handle(host, JoinDecision(viewer.id, accepted = true))
+        val link = FakeLink()
+
+        assertNull(manager.join(link, viewerHello()))
+        assertEquals(messages(Error(ErrorCode.ROOM_FULL)), link.received)
+    }
+
+    @Test
+    fun `requests waiting for approval do not fill the room`() = runTest {
+        val manager = lanManager(maxViewers = 1)
+        val hostLink = FakeLink()
+        val host = assertNotNull(manager.join(hostLink, hostHello()))
+        val links = List(3) { FakeLink() }
+        val viewers = links.mapIndexed { i, link -> assertNotNull(manager.join(link, viewerHello(name = "Viewer $i"))) }
+        hostLink.takeAll()
+
+        manager.handle(host, JoinDecision(viewers[1].id, accepted = true))
+
+        assertEquals(messages(JoinDecision(viewers[1].id, true)), links[1].received.drop(1))
+        for (i in listOf(0, 2)) {
+            assertEquals(messages(Error(ErrorCode.ROOM_FULL)), links[i].received.drop(1))
+            assertTrue(links[i].closed)
+        }
+        assertEquals(messages(PeerLeft(viewers[0].id), PeerLeft(viewers[2].id)), hostLink.received)
+    }
+
+    @Test
+    fun `a place freed by a viewer who leaves takes a new request`() = runTest {
+        val manager = lanManager(maxViewers = 1)
+        val host = assertNotNull(manager.join(FakeLink(), hostHello()))
+        val viewer = assertNotNull(manager.join(FakeLink(), viewerHello()))
+        manager.handle(host, JoinDecision(viewer.id, accepted = true))
+
+        manager.handle(viewer, Leave)
+
+        assertNotNull(manager.join(FakeLink(), viewerHello()))
+    }
+
+    @Test
+    fun `too many waiting requests are turned away`() = runTest {
+        val manager = lanManager(maxWaiting = 2)
         manager.join(FakeLink(), hostHello())
-        manager.join(FakeLink(), viewerHello())
+        repeat(2) { assertNotNull(manager.join(FakeLink(), viewerHello())) }
         val link = FakeLink()
 
         assertNull(manager.join(link, viewerHello()))

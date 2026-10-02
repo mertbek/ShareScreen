@@ -30,6 +30,7 @@ data class SignalingConfig(
     val hostSecret: String? = null,
     val maxWrongPinsPerMinute: Int = 10,
     val maxViewersPerRoom: Int = 4,
+    val maxWaitingPerRoom: Int = 8,
     val iceServers: () -> List<IceServerConfig> = { emptyList() },
     val resumeGraceMillis: Long = 30_000,
 )
@@ -94,6 +95,10 @@ private class Room(val code: String, val pin: String?, val host: Member) {
     val viewers = LinkedHashMap<String, Member>()
 
     fun member(id: String): Member? = if (host.id == id) host else viewers[id]
+
+    fun watching(): Int = viewers.values.count { it.approved }
+
+    fun waiting(): List<Member> = viewers.values.filterNot { it.approved }
 }
 
 class RoomManager(
@@ -172,7 +177,9 @@ class RoomManager(
             room.wrongPinAddresses[address] = now
             return refuse(link, ErrorCode.INVALID_PIN)
         }
-        if (room.viewers.size >= config.maxViewersPerRoom) return refuse(link, ErrorCode.ROOM_FULL)
+        if (room.watching() >= config.maxViewersPerRoom || room.waiting().size >= config.maxWaitingPerRoom) {
+            return refuse(link, ErrorCode.ROOM_FULL)
+        }
 
         val viewer = newMember(PeerRole.VIEWER, deviceName, room.code, link)
         room.viewers[viewer.id] = viewer
@@ -195,11 +202,20 @@ class RoomManager(
         if (decision.accepted) {
             viewer.approved = true
             viewer.send(decision)
+            // Requests wait only while there is room for them.
+            if (room.watching() >= config.maxViewersPerRoom) room.waiting().forEach { turnAway(room, it) }
         } else {
             forget(room, viewer)
             viewer.send(Error(ErrorCode.REJECTED))
             viewer.close()
         }
+    }
+
+    private fun turnAway(room: Room, viewer: Member) {
+        forget(room, viewer)
+        viewer.send(Error(ErrorCode.ROOM_FULL))
+        viewer.close()
+        room.host.send(PeerLeft(viewer.id))
     }
 
     private fun kick(room: Room, viewerId: String) {
