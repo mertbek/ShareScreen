@@ -26,6 +26,8 @@
     <string name="host_internet_connecting">İnternet sunucusunda oda açılıyor…</string>
     <string name="host_internet_failed">İnternet sunucusuna (%1$s) ulaşılamadı. Yakındaki cihazlar yine de bağlanabilir.</string>
     <string name="host_internet_closed">İnternet odası kapandı. Yakındaki cihazlar yine de bağlanabilir.</string>
+    <string name="host_internet_failed_only">İnternet sunucusuna (%1$s) ulaşılamadı. Yeniden denemek için paylaşımı durdurup tekrar başlat.</string>
+    <string name="host_internet_closed_only">İnternet odası kapandı, yeni kimse katılamaz. İzleyenler izlemeye devam eder; yeni bir oda için paylaşımı yeniden başlat.</string>
     <string name="host_room_code_label">Oda kodu</string>
     <string name="host_viewer_via_internet">internet üzerinden</string>
     <string name="host_qr_hint">Diğer cihazda ShareScreen ile ya da kamerayla okut</string>

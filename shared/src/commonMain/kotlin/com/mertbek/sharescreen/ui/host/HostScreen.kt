@@ -371,11 +371,14 @@ private fun InternetDetails(services: AppServices, room: InternetRoom, pin: Stri
     when (room) {
         is InternetRoom.Connecting -> Busy(stringResource(Res.string.host_internet_connecting))
         is InternetRoom.Failed -> Text(
-            text = stringResource(Res.string.host_internet_failed, room.server.substringAfter("://").substringBefore("/")),
+            text = stringResource(
+                if (services.lanServer != null) Res.string.host_internet_failed else Res.string.host_internet_failed_only,
+                room.server.substringAfter("://").substringBefore("/"),
+            ),
             color = MaterialTheme.colorScheme.error,
         )
         is InternetRoom.Closed -> Text(
-            text = stringResource(Res.string.host_internet_closed),
+            text = stringResource(if (services.lanServer != null) Res.string.host_internet_closed else Res.string.host_internet_closed_only),
             color = MaterialTheme.colorScheme.error,
         )
         is InternetRoom.Open -> {

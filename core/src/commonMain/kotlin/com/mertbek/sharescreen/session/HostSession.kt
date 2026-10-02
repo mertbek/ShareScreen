@@ -36,6 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -203,6 +204,7 @@ class HostSession(
                     internet?.cancel()
                 } else {
                     internet?.join()
+                    awaitCancellation()
                 }
             }
             _state.value = HostState.Failed("Signaling connection closed")

@@ -14,12 +14,17 @@ import com.mertbek.sharescreen.platform.LanServer
 import com.mertbek.sharescreen.session.EndReason
 import com.mertbek.sharescreen.session.HostSession
 import com.mertbek.sharescreen.session.HostState
+import com.mertbek.sharescreen.session.InternetRoom
 import com.mertbek.sharescreen.session.JoinTarget
 import com.mertbek.sharescreen.session.ViewerSession
 import com.mertbek.sharescreen.session.ViewerState
+import com.mertbek.sharescreen.signaling.RoomManager
+import com.mertbek.sharescreen.signaling.SignalingConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.server.cio.CIO as ServerCIO
+import io.ktor.server.engine.embeddedServer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -213,5 +218,50 @@ class SessionTest {
             }
         }
         setup.host.stop().join()
+    }
+
+    @Test
+    fun `an internet-only host stays live when the server cannot be reached`() = runBlocking {
+        val host = HostSession(FakeRtcEngine(), SignalingClient(cioClient()), DeviceName("Web"))
+        host.start(FakeMedia(), internetServer = "ws://127.0.0.1:9", allowControl = false)
+        eventually { (host.state.value as? HostState.Live)?.internetRoom as? InternetRoom.Failed }
+        kotlinx.coroutines.delay(500)
+        assertIs<HostState.Live>(host.state.value)
+        host.stop().join()
+    }
+
+    @Test
+    fun `an internet-only host keeps its viewers when the server loses the room`() = runBlocking {
+        fun internetServer(port: Int) = embeddedServer(ServerCIO, port = port, host = "127.0.0.1") {
+            signalingModule(RoomManager(SignalingConfig()))
+        }
+        var server = internetServer(0).also { it.startSuspend(wait = false) }
+        val port = server.engine.resolvedConnectors().first().port
+        val address = "ws://127.0.0.1:$port"
+        val engine = FakeRtcEngine()
+        val host = HostSession(engine, SignalingClient(cioClient()), DeviceName("Web"))
+        val viewer = ViewerSession(engine, SignalingClient(cioClient()), DeviceName("Viewer"))
+        host.start(FakeMedia(), internetServer = address, allowControl = false)
+        val room = eventually { (host.state.value as? HostState.Live)?.internetRoom as? InternetRoom.Open }
+        viewer.connect(JoinTarget.Internet(address, room.roomCode), (host.state.value as HostState.Live).pin)
+        host.approve(eventually { (host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }.id)
+        eventually { viewer.state.value as? ViewerState.Watching }
+
+        server.stop(100, 500)
+        server = internetServer(port).also { it.startSuspend(wait = false) }
+
+        val live = withTimeout(40.seconds) {
+            var state = host.state.value
+            while (state is HostState.Live && state.internetRoom !is InternetRoom.Closed) {
+                kotlinx.coroutines.delay(50)
+                state = host.state.value
+            }
+            state
+        }
+        assertIs<HostState.Live>(live)
+        assertEquals(listOf("Viewer"), live.viewers.map { it.deviceName })
+        viewer.close()
+        host.stop().join()
+        server.stop(100, 500)
     }
 }

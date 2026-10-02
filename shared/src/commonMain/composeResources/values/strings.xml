@@ -28,6 +28,8 @@
     <string name="host_internet_connecting">Opening a room on the internet server…</string>
     <string name="host_internet_failed">Could not reach the internet server %1$s. Nearby devices can still connect.</string>
     <string name="host_internet_closed">The internet room closed. Nearby devices can still connect.</string>
+    <string name="host_internet_failed_only">Could not reach the internet server %1$s. Stop and share again to retry.</string>
+    <string name="host_internet_closed_only">The internet room closed, so nobody new can join. Viewers who are watching keep watching; share again for a new room.</string>
     <string name="host_room_code_label">Room code</string>
     <string name="host_viewer_via_internet">over the internet</string>
     <string name="host_qr_hint">Scan with the ShareScreen app or the camera of the other device</string>
