@@ -1,5 +1,6 @@
 package com.mertbek.sharescreen.desktop
 
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,9 +27,12 @@ import com.mertbek.sharescreen.rtc.DesktopScreenCapture
 import com.mertbek.sharescreen.rtc.DesktopScreenSource
 import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.settings.SettingsRepository
+import com.mertbek.sharescreen.ui.host.RequestWindow
 import com.russhwolf.settings.PreferencesSettings
 import kotlinx.coroutines.channels.Channel
 import java.awt.Desktop
+import java.awt.KeyboardFocusManager
+import java.beans.PropertyChangeListener
 import java.net.InetAddress
 import java.nio.file.Path
 import java.util.prefs.Preferences
@@ -89,7 +93,20 @@ fun main(args: Array<String>) {
         val icon = remember { BitmapPainter(useResource("icon.png", ::loadImageBitmap)) }
         val windowState = rememberWindowState()
         var incomingLink by remember { mutableStateOf<ConnectLink?>(null) }
+        var appInFront by remember { mutableStateOf(true) }
         Window(onCloseRequest = ::exitApplication, state = windowState, title = "ShareScreen", icon = icon) {
+            DisposableEffect(window) {
+                val focus = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                // The app's own dialogs count as the app being in front.
+                fun update() {
+                    val active = focus.activeWindow
+                    appInFront = active != null && (active === window || active.owner === window)
+                }
+                val listener = PropertyChangeListener { update() }
+                focus.addPropertyChangeListener("activeWindow", listener)
+                update()
+                onDispose { focus.removePropertyChangeListener("activeWindow", listener) }
+            }
             LaunchedEffect(Unit) {
                 for (link in links) {
                     incomingLink = link
@@ -99,5 +116,6 @@ fun main(args: Array<String>) {
             }
             App(services, incomingLink = incomingLink, onIncomingLinkHandled = { incomingLink = null })
         }
+        RequestWindow(services, appInFront)
     }
 }
