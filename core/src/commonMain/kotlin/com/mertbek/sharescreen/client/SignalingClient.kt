@@ -67,7 +67,10 @@ class SignalingConnection internal constructor(private val session: DefaultClien
     suspend fun leave() {
         send(SignalMessage.Leave)
         outbox.close()
-        withTimeoutOrNull(LEAVE_FLUSH_TIMEOUT) { writer.join() }
+        withTimeoutOrNull(LEAVE_FLUSH_TIMEOUT) {
+            writer.join()
+            session.flush()
+        }
         session.close()
     }
 

@@ -195,4 +195,23 @@ class SessionTest {
         setup.viewer.close()
         setup.host.stop().join()
     }
+
+    @Test
+    fun `a viewer who closes the session leaves the host's list right away`() = runBlocking {
+        val setup = Setup(allowControl = false)
+        setup.start()
+        val live = eventually { setup.host.state.value as? HostState.Live }
+        val signaling = SignalingClient(cioClient())
+        repeat(50) {
+            val viewer = ViewerSession(setup.engine, signaling, DeviceName("Viewer $it"))
+            viewer.connect(JoinTarget.Lan("127.0.0.1", live.port), live.pin)
+            setup.host.approve(eventually { (setup.host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }.id)
+            eventually { viewer.state.value as? ViewerState.Watching }
+            viewer.close()
+            withTimeout(3.seconds) {
+                while ((setup.host.state.value as HostState.Live).viewers.isNotEmpty()) kotlinx.coroutines.delay(20)
+            }
+        }
+        setup.host.stop().join()
+    }
 }
