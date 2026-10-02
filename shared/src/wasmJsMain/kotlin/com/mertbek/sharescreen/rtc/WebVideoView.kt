@@ -47,6 +47,7 @@ fun WebVideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize
                 factory = { element.unsafeCast<HTMLElement>() },
                 modifier = Modifier.fillMaxSize(),
                 update = {
+                    videoPassPointerEvents(element)
                     videoSetTransform(
                         element,
                         zoom.scale,

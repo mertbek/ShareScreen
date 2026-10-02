@@ -81,6 +81,8 @@ An Android host maps pointer input to gestures; a desktop host maps touches to m
 - An HTML element is always drawn above the Compose canvas. Screens that would put controls or
   dialogs over the video use `PlatformUi.canOverlayVideo`: on the web the viewer keeps its
   controls in a bar above the picture and the host hides the preview while a dialog is open.
+  The video and the holder Compose puts it in let pointer events through, so clicks and touches
+  on the picture reach the canvas for remote control and zoom.
 - Screens that assume a LAN (nearby devices, manual address, Wi-Fi hints) check for the
   matching service in `AppServices` and are left out of the web build.
 - The wasm bundle is about 37 MB uncompressed (Skia and the app), so serve it compressed.

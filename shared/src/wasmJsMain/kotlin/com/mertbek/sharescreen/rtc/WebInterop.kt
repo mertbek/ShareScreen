@@ -164,6 +164,10 @@ internal external fun createVideoElement(stream: JsAny): JsAny
 @JsFun("(wrapper, scale, x, y) => { wrapper.firstChild.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')'; }")
 internal external fun videoSetTransform(wrapper: JsAny, scale: Float, x: Float, y: Float)
 
+// Compose places the element in a holder above the canvas that would catch every click and touch.
+@JsFun("(wrapper) => { if (wrapper.parentElement) wrapper.parentElement.style.pointerEvents = 'none'; }")
+internal external fun videoPassPointerEvents(wrapper: JsAny)
+
 @JsFun(
     """(wrapper, cb) => {
         const video = wrapper.firstChild;
