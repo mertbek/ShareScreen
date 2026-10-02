@@ -348,6 +348,7 @@ private fun InputSurface(
                 awaitPointerEventScope {
                     var sent = emptyList<TouchPointer>()
                     var activeButton = PointerButton.LEFT
+                    var wentBack = false
                     while (true) {
                         val event = awaitPointerEvent()
                         val fit = fitVideo(size.width.toFloat(), size.height.toFloat(), currentVideo.width, currentVideo.height)
@@ -369,6 +370,15 @@ private fun InputSurface(
                             val change = event.changes.first()
                             val (x, y) = mapToPicture(fit, currentZoom, change.position.x, change.position.y)
                             session.pointer(ControlMessage.Pointer(PointerAction.SCROLL, x, y, scrollX = change.scrollDelta.x, scrollY = change.scrollDelta.y))
+                        } else if (
+                            event.type == PointerEventType.Press && event.buttons.isSecondaryPressed && sent.isEmpty() && !wentBack &&
+                            event.changes.any { it.type == PointerType.Mouse }
+                        ) {
+                            // A right click goes back, as it does with a mouse plugged into a phone, and touches nothing.
+                            session.navigate(NavAction.BACK)
+                            wentBack = true
+                        } else if (wentBack) {
+                            if (event.changes.none { it.pressed }) wentBack = false
                         } else {
                             val pointers = event.changes.filter { it.pressed }.take(MAX_POINTERS).map {
                                 val (x, y) = mapToPicture(fit, currentZoom, it.position.x, it.position.y)
