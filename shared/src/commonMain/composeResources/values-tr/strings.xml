@@ -73,6 +73,8 @@
     <string name="settings_server_invalid">share.example.com veya wss://share.example.com gibi bir adres gir. Düz ws:// yalnızca kendi ağında çalışır.</string>
     <string name="settings_server_save">Kaydet</string>
     <string name="host_join_request_title">İzleme isteği</string>
+    <string name="host_requests_over_apps">Ana ekrandayken ya da başka bir uygulamadayken izleme ve kontrol isteklerine cevap verebilmek için ShareScreen'in bunları diğer uygulamaların üzerinde göstermesine izin ver.</string>
+    <string name="host_requests_over_apps_allow">İzin ver</string>
     <string name="host_join_request_message">%1$s ekranını izlemek istiyor.</string>
     <string name="host_join_request_message_internet">%1$s ekranını internet üzerinden izlemek istiyor.</string>
     <string name="host_join_request_allow">İzin ver</string>

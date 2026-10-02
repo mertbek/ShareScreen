@@ -25,6 +25,15 @@ interface PlatformUi {
     @Composable
     fun WhileWatching() = Unit
 
+    /**
+     * Whether watch and control requests can show over other apps while sharing, or null where
+     * they only ever show in the app. Checked again whenever the app comes back to the front.
+     */
+    @Composable
+    fun requestsOverOtherApps(): Boolean? = null
+
+    fun allowRequestsOverOtherApps() = Unit
+
     val canScanQr: Boolean get() = false
 
     val canShareInApp: Boolean get() = false

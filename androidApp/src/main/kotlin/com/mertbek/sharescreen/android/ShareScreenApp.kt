@@ -1,7 +1,9 @@
 package com.mertbek.sharescreen.android
 
+import android.app.Activity
 import android.app.Application
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.util.Log as AndroidLog
 import com.mertbek.sharescreen.android.capture.AndroidScreenSource
@@ -21,6 +23,9 @@ import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.settings.SettingsRepository
 import com.mertbek.sharescreen.util.Log
 import com.russhwolf.settings.SharedPreferencesSettings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class ShareScreenApp : Application() {
 
@@ -57,8 +62,32 @@ class ShareScreenApp : Application() {
         )
     }
 
+    private val _inFront = MutableStateFlow(false)
+
+    /** Whether one of the app's screens is on display. */
+    val inFront: StateFlow<Boolean> = _inFront.asStateFlow()
+
     override fun onCreate() {
         super.onCreate()
+        registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            private var started = 0
+
+            override fun onActivityStarted(activity: Activity) {
+                started++
+                _inFront.value = true
+            }
+
+            override fun onActivityStopped(activity: Activity) {
+                started--
+                _inFront.value = started > 0
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+            override fun onActivityResumed(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+            override fun onActivityDestroyed(activity: Activity) = Unit
+        })
         Log.sink = { level, tag, message, error ->
             when (level) {
                 "E" -> AndroidLog.e(tag, message, error)

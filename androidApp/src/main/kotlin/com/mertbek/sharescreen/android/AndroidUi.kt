@@ -4,6 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler as ActivityBackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -23,6 +29,8 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.mertbek.sharescreen.android.control.RemoteControlService
 import com.mertbek.sharescreen.app.PlatformUi
 import com.mertbek.sharescreen.app.QrScan
@@ -68,6 +76,25 @@ class AndroidUi(
                 view.keepScreenOn = false
             }
         }
+    }
+
+    @Composable
+    override fun requestsOverOtherApps(): Boolean? {
+        var allowed by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
+        // The permission is given in the system settings, so look again when the app comes back.
+        val lifecycle = (LocalActivity.current as? ComponentActivity)?.lifecycle
+        DisposableEffect(lifecycle) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) allowed = Settings.canDrawOverlays(context)
+            }
+            lifecycle?.addObserver(observer)
+            onDispose { lifecycle?.removeObserver(observer) }
+        }
+        return allowed
+    }
+
+    override fun allowRequestsOverOtherApps() {
+        activity?.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:${context.packageName}".toUri()))
     }
 
     override fun scanQr(onResult: (QrScan) -> Unit) {

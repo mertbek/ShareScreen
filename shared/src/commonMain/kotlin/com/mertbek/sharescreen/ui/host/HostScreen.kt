@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.outlined.ScreenShare
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.PersonAdd
@@ -225,6 +226,7 @@ private fun SharingContent(
     val live = hostState as? HostState.Live
     val connection = @Composable {
         if (live != null) LiveHeader(live.viewers.size)
+        if (live != null && services.ui.requestsOverOtherApps() == false) RequestsOverAppsCard(services.ui::allowRequestsOverOtherApps)
         ConnectionSection(services, hostState)
     }
     val activity = @Composable {
@@ -551,6 +553,26 @@ private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioE
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RequestsOverAppsCard(onAllow: () -> Unit) {
+    SoftCard(containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Layers, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    text = stringResource(Res.string.host_requests_over_apps),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+            Button(onClick = onAllow, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(Res.string.host_requests_over_apps_allow))
             }
         }
     }

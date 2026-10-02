@@ -75,6 +75,8 @@
     <string name="settings_server_invalid">Enter an address like share.example.com or wss://share.example.com. Plain ws:// works only on your own network.</string>
     <string name="settings_server_save">Save</string>
     <string name="host_join_request_title">Watch request</string>
+    <string name="host_requests_over_apps">To answer watch and control requests while you are on the home screen or in another app, let ShareScreen show them over other apps.</string>
+    <string name="host_requests_over_apps_allow">Allow</string>
     <string name="host_join_request_message">%1$s wants to watch your screen.</string>
     <string name="host_join_request_message_internet">%1$s wants to watch your screen over the internet.</string>
     <string name="host_join_request_allow">Allow</string>

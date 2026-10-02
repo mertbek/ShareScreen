@@ -32,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 class ScreenCaptureService : Service() {
@@ -43,6 +45,7 @@ class ScreenCaptureService : Service() {
     private var isCapturing = false
     private var isStopping = false
     private val notificationManager by lazy { getSystemService(NotificationManager::class.java) }
+    private val requestOverlay by lazy { RequestOverlay(this, app.services) }
 
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() = stopSharing()
@@ -69,6 +72,7 @@ class ScreenCaptureService : Service() {
 
     override fun onDestroy() {
         serviceScope.cancel()
+        requestOverlay.hide()
         cancelRequestNotifications()
         app.wifiLock.release()
         if (!isStopping && isCapturing) app.services.hosting.stop()
@@ -120,6 +124,7 @@ class ScreenCaptureService : Service() {
     private fun finish() {
         isStopping = true
         app.wifiLock.release()
+        requestOverlay.hide()
         cancelRequestNotifications()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -143,7 +148,15 @@ class ScreenCaptureService : Service() {
                 }
             }
         }
+        serviceScope.launch {
+            // Out of the app, the request itself shows over whatever is on screen.
+            combine(app.services.host.state, app.inFront) { state, inFront -> !inFront && (state as? HostState.Live)?.hasRequest() == true }
+                .distinctUntilChanged()
+                .collect { show -> if (show) requestOverlay.show() else requestOverlay.hide() }
+        }
     }
+
+    private fun HostState.Live.hasRequest() = pendingViewers.isNotEmpty() || viewers.any { it.control == ControlRole.REQUESTED }
 
     private fun showRequestNotifications(live: HostState.Live?) {
         val requests = buildMap<Int, () -> Notification> {
@@ -214,6 +227,8 @@ class ScreenCaptureService : Service() {
             .setContentIntent(openHostIntent())
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_STATUS)
+            // Out of the app the request shows over other apps already, so the notification stays quietly in the list.
+            .setSilent(requestOverlay.isAllowed && !app.inFront.value)
             .addAction(0, getString(R.string.host_join_request_allow), action(allowAction, 0))
             .addAction(0, getString(R.string.host_join_request_deny), action(denyAction, 1))
         return builder()
