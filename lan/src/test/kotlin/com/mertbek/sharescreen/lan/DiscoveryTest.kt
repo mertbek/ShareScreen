@@ -17,11 +17,12 @@ class DiscoveryTest {
         val browser = JmDnsBrowser(excludeOwn = false)
         try {
             browser.start()
-            advertiser.register("Test host", 40123, pinRequired = false)
+            advertiser.register("Test host", 40123, pinRequired = false, id = "host-id")
             val found = withTimeout(30.seconds) { browser.hosts.first { hosts -> hosts.any { it.name == "Test host" } } }
             val host = found.single { it.name == "Test host" }
             assertEquals(40123, host.port)
             assertEquals(false, host.pinRequired)
+            assertEquals("host-id", host.id)
         } finally {
             advertiser.unregister()
             browser.stop()

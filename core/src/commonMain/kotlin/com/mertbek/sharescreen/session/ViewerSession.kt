@@ -25,6 +25,7 @@ import com.mertbek.sharescreen.rtc.RtcPeer
 import com.mertbek.sharescreen.rtc.SdpType
 import com.mertbek.sharescreen.rtc.SessionDescription
 import com.mertbek.sharescreen.rtc.StreamInfo
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.signaling.ErrorCode
 import com.mertbek.sharescreen.signaling.IceServerConfig
 import com.mertbek.sharescreen.signaling.PeerRole
@@ -60,6 +61,9 @@ enum class EndReason {
     HOST_ENDED,
     CONNECTION_LOST,
     UNSUPPORTED_VERSION,
+
+    /** The host no longer remembers this device, which has forgotten the host too and can ask again. */
+    PASS_REFUSED,
 }
 
 sealed interface ViewerState {
@@ -74,7 +78,8 @@ sealed interface JoinTarget {
     val signalingUrl: String
     val roomCode: String?
 
-    data class Lan(val host: String, val port: Int) : JoinTarget {
+    /** The [hostId] says which remembered host this is, when the viewer learned it from the host. */
+    data class Lan(val host: String, val port: Int, val hostId: String? = null) : JoinTarget {
         override val signalingUrl get() = lanSignalingUrl(host, port)
         override val roomCode: String? get() = null
     }
@@ -96,6 +101,7 @@ class ViewerSession(
     private val rtc: RtcEngine,
     private val signalingClient: SignalingClient,
     private val deviceName: DeviceName,
+    private val rememberedDevices: RememberedDevices? = null,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
 
@@ -131,6 +137,7 @@ class ViewerSession(
     private var remoteAudio: RemoteAudio? = null
     private var isConnected = false
     private var iceServers: List<IceServerConfig> = emptyList()
+    private var passHost: String? = null
 
     fun connect(target: JoinTarget, pin: String?) {
         scope.launch { run(target, pin) }
@@ -175,6 +182,7 @@ class ViewerSession(
     }
 
     private fun handleControl(message: ControlMessage) {
+        if (message is ControlMessage.Remember) rememberedDevices?.rememberHost(message)
         if (message !is ControlMessage.Status) return
         val previous = _control.value
         _control.value = ControlStatus(message.available, message.role, message.platform)
@@ -188,11 +196,14 @@ class ViewerSession(
     }
 
     private suspend fun run(target: JoinTarget, pin: String?) {
+        val pass = (target as? JoinTarget.Lan)?.hostId?.let { id ->
+            rememberedDevices?.passFor(id)?.also { passHost = id }
+        }
         var connection = try {
             withTimeout(CONNECT_TIMEOUT) {
                 signalingClient.connect(
                     target.signalingUrl,
-                    SignalMessage.Hello(PeerRole.VIEWER, deviceName.value, pin = pin, roomCode = target.roomCode),
+                    SignalMessage.Hello(PeerRole.VIEWER, deviceName.value, pin = pin, roomCode = target.roomCode, pass = pass),
                 )
             }
         } catch (_: TimeoutCancellationException) {
@@ -267,6 +278,13 @@ class ViewerSession(
             is SignalMessage.SessionEnded -> end(EndReason.HOST_ENDED)
             is SignalMessage.Error -> {
                 if (message.code == ErrorCode.RESUME_FAILED) resumeToken = null
+                val passHost = passHost
+                if (message.code == ErrorCode.REJECTED && passHost != null) {
+                    // Only a pass the host does not know is refused without asking anyone.
+                    rememberedDevices?.forgetHost(passHost)
+                    end(EndReason.PASS_REFUSED)
+                    return
+                }
                 val reason = message.code.toEndReason()
                 if (reason != null) end(reason) else Log.w(TAG, "Signaling error ${message.code}: ${message.message}")
             }

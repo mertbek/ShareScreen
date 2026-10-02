@@ -41,6 +41,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,11 +56,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.mertbek.sharescreen.resources.*
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.settings.SettingsRepository
 import androidx.compose.runtime.collectAsState
 import com.mertbek.sharescreen.link.ServerAddress
 import com.mertbek.sharescreen.settings.VideoQuality
 import com.mertbek.sharescreen.ui.components.IconBadge
+import com.mertbek.sharescreen.ui.components.InitialAvatar
 import com.mertbek.sharescreen.ui.components.ScreenPadding
 import com.mertbek.sharescreen.ui.components.SectionTitle
 import com.mertbek.sharescreen.ui.components.SoftCard
@@ -68,6 +71,7 @@ import com.mertbek.sharescreen.ui.components.SoftCard
 @Composable
 fun SettingsScreen(
     repository: SettingsRepository,
+    rememberedDevices: RememberedDevices?,
     canShareNearby: Boolean,
     canBeControlled: Boolean,
     versionName: String,
@@ -145,6 +149,11 @@ fun SettingsScreen(
                             checked = settings.allowRemoteControl,
                             onCheckedChange = repository::setAllowRemoteControl,
                         )
+                    }
+                }
+                if (canShareNearby && rememberedDevices != null) {
+                    Section(stringResource(Res.string.settings_remembered_title)) {
+                        RememberedViewers(rememberedDevices)
                     }
                 }
                 Section(stringResource(Res.string.settings_section_internet)) {
@@ -288,6 +297,31 @@ private fun CustomServer(saved: String?, defaultServer: String?, onSave: (String
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             Button(onClick = save, enabled = text.trim() != saved.orEmpty(), modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(Res.string.settings_server_save))
+            }
+        }
+    }
+}
+
+@Composable
+private fun RememberedViewers(devices: RememberedDevices) {
+    val viewers by devices.viewers.collectAsState()
+    Text(
+        text = stringResource(if (viewers.isEmpty()) Res.string.settings_remembered_empty else Res.string.settings_remembered_description),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+    )
+    viewers.forEach { viewer ->
+        HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            InitialAvatar(viewer.name, size = 40.dp)
+            Spacer(Modifier.width(16.dp))
+            Text(viewer.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, modifier = Modifier.weight(1f))
+            TextButton(onClick = { devices.forgetViewer(viewer.key) }) {
+                Text(stringResource(Res.string.settings_remembered_forget))
             }
         }
     }

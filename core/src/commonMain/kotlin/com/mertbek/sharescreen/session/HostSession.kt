@@ -24,6 +24,7 @@ import com.mertbek.sharescreen.rtc.RtcException
 import com.mertbek.sharescreen.rtc.RtcPeer
 import com.mertbek.sharescreen.rtc.SdpType
 import com.mertbek.sharescreen.rtc.SessionDescription
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.signaling.ErrorCode
 import com.mertbek.sharescreen.signaling.IceServerConfig
 import com.mertbek.sharescreen.signaling.PeerRole
@@ -61,6 +62,7 @@ class HostSession(
     private val localAddresses: LocalAddressProvider? = null,
     private val lanAdvertiser: LanAdvertiser? = null,
     private val inputInjector: InputInjector? = null,
+    private val rememberedDevices: RememberedDevices? = null,
 ) {
     private class Link(connection: SignalingConnection, val viaInternet: Boolean) {
         var connection = connection
@@ -141,16 +143,22 @@ class HostSession(
         _state.value = HostState.Idle
     }
 
-    fun approve(viewerId: String) = launchInSession {
+    /** Lets a viewer in; with [remember] it can come back on the local network without asking. */
+    fun approve(viewerId: String, remember: Boolean = false) = launchInSession {
         val pending = takePending(viewerId) ?: return@launchInSession
-        val link = viewerLinks[viewerId] ?: return@launchInSession
-        val media = media ?: return@launchInSession
+        letIn(viewerId, pending.deviceName, remember = remember)
+    }
+
+    private suspend fun CoroutineScope.letIn(viewerId: String, deviceName: String, remember: Boolean = false, remembered: Boolean = false) {
+        val link = viewerLinks[viewerId] ?: return
+        val media = media ?: return
 
         link.send(SignalMessage.JoinDecision(viewerId, accepted = true))
         val peer = rtc.createPeer(link.iceServers)
         peers[viewerId] = peer
         updateLive {
-            it.copy(viewers = it.viewers + ViewerInfo(viewerId, pending.deviceName, isConnected = false, viaInternet = link.viaInternet))
+            val viewer = ViewerInfo(viewerId, deviceName, isConnected = false, viaInternet = link.viaInternet, remembered = remembered)
+            it.copy(viewers = it.viewers + viewer)
         }
         launch { forwardEvents(viewerId, peer, link) }
 
@@ -158,7 +166,12 @@ class HostSession(
             peer.addMedia(media)
             val control = ControlChannel(peer.createDataChannel(CONTROL_CHANNEL_LABEL))
             controlChannels[viewerId] = control
-            launch { if (control.awaitOpen()) control.send(controlStatus(viewerId)) }
+            launch {
+                if (!control.awaitOpen()) return@launch
+                control.send(controlStatus(viewerId))
+                // The data channel is encrypted, unlike signaling on the local network, so the secret travels here.
+                if (remember && !link.viaInternet) rememberedDevices?.rememberViewer(deviceName)?.let(control::send)
+            }
             launch { control.messages.collect { onControlMessage(viewerId, it) } }
             val offer = peer.createOffer().let { it.copy(sdp = OpusSdp.preferStereoMusic(it.sdp)) }
             peer.setLocalDescription(offer)
@@ -221,7 +234,7 @@ class HostSession(
                 internetRoom = internetServer?.let(InternetRoom::Connecting),
                 remoteControl = remoteControlAvailability(),
             )
-            if (lan != null) lanAdvertiser?.register(deviceName.value, port, pinRequired = lanPin)
+            if (lan != null) lanAdvertiser?.register(deviceName.value, port, pinRequired = lanPin, id = rememberedDevices?.hostId)
             coroutineScope {
                 val internet = internetServer?.let { launch { runInternet(it, pin) } }
                 if (lan != null) {
@@ -331,6 +344,18 @@ class HostSession(
             is SignalMessage.Error if message.code == ErrorCode.RESUME_FAILED -> link.resumeToken = null
             is SignalMessage.JoinRequest -> {
                 viewerLinks[message.viewerId] = link
+                val pass = message.pass
+                if (pass != null) {
+                    // A pass skipped the PIN, so one this host does not recognise is turned away without asking anyone.
+                    val viewer = rememberedDevices?.takeIf { !link.viaInternet }?.admit(pass)
+                    if (viewer == null) {
+                        viewerLinks.remove(message.viewerId)
+                        link.send(SignalMessage.JoinDecision(message.viewerId, accepted = false))
+                    } else {
+                        launchInSession { letIn(message.viewerId, message.deviceName, remembered = true) }
+                    }
+                    return
+                }
                 updateLive {
                     it.copy(pendingViewers = it.pendingViewers + PendingViewer(message.viewerId, message.deviceName, link.viaInternet))
                 }
@@ -430,7 +455,7 @@ class HostSession(
             is ControlMessage.Press -> if (granted) injector?.press(message.key)
             is ControlMessage.Pointer -> if (granted) injector?.pointer(message)
             is ControlMessage.Keyboard -> if (granted) injector?.keyboard(message)
-            is ControlMessage.Status -> Unit
+            is ControlMessage.Status, is ControlMessage.Remember -> Unit
         }
     }
 

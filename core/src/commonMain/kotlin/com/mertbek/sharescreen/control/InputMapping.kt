@@ -7,6 +7,6 @@ fun mapToPicture(fit: FittedRect, zoom: Zoom, x: Float, y: Float): Pair<Float, F
     zoom.pictureX(fit.fractionX(x)) to zoom.pictureY(fit.fractionY(y))
 
 fun ConnectLink.toJoinTarget(): JoinTarget = when (this) {
-    is ConnectLink.Lan -> JoinTarget.Lan(host, port)
+    is ConnectLink.Lan -> JoinTarget.Lan(host, port, hostId)
     is ConnectLink.Internet -> JoinTarget.Internet(server, roomCode)
 }

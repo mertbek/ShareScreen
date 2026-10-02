@@ -32,6 +32,7 @@
     <string name="host_internet_failed_only">Could not reach the internet server %1$s. Stop and share again to retry.</string>
     <string name="host_internet_closed_only">The internet room closed, so nobody new can join. Viewers who are watching keep watching; share again for a new room.</string>
     <string name="host_room_code_label">Room code</string>
+    <string name="host_viewer_remembered">Remembered</string>
     <string name="host_viewer_via_internet">over the internet</string>
     <string name="host_qr_hint">Scan with the ShareScreen app or the camera of the other device</string>
     <string name="host_invite_share">Share invite link</string>
@@ -77,6 +78,7 @@
     <string name="host_join_request_message">%1$s wants to watch your screen.</string>
     <string name="host_join_request_message_internet">%1$s wants to watch your screen over the internet.</string>
     <string name="host_join_request_allow">Allow</string>
+    <string name="host_join_request_remember">Remember this device</string>
     <string name="host_join_request_deny">Deny</string>
 '
     <string name="discover_nearby_title">Nearby devices</string>
@@ -127,6 +129,10 @@
     <string name="settings_control_title">Allow remote control</string>
     <string name="settings_lan_pin_title">Ask nearby viewers for the PIN</string>
     <string name="settings_lan_pin_description">Devices on the same Wi-Fi then need the PIN as well as your approval. Turn this on when you share on a network others use too, like a café or an office.</string>
+    <string name="settings_remembered_title">Remembered devices</string>
+    <string name="settings_remembered_description">These devices watch without a PIN or your approval when they join on the same network. Forget one to make it ask again.</string>
+    <string name="settings_remembered_empty">No remembered devices. Tick “Remember this device” when you allow a request from the same network.</string>
+    <string name="settings_remembered_forget">Forget</string>
     <string name="settings_control_description">Viewers can ask to control this device. You approve each request and can take control back at any time. The whole screen is always shared.</string>
     <string name="host_control_title">Remote control</string>
     <string name="host_control_needs_service">To let viewers control this device, turn on ShareScreen remote control in the accessibility settings.</string>

@@ -149,7 +149,9 @@ fun DiscoverScreen(
                     NearbyHostsCard(
                         hosts = hosts,
                         onSelect = { host ->
-                            if (host.pinRequired) selectedHost = host else onConnect(ConnectLink.Lan(host.host, host.port, null, host.name))
+                            // A host that remembers this device lets it in without the PIN.
+                            val askPin = host.pinRequired && services.rememberedDevices?.knowsHost(host.id) != true
+                            if (askPin) selectedHost = host else onConnect(ConnectLink.Lan(host.host, host.port, null, host.name, host.id))
                         },
                     )
                 }
@@ -170,7 +172,7 @@ fun DiscoverScreen(
             host = host,
             onConnect = { pin ->
                 selectedHost = null
-                onConnect(ConnectLink.Lan(host.host, host.port, pin, host.name))
+                onConnect(ConnectLink.Lan(host.host, host.port, pin, host.name, host.id))
             },
             onDismiss = { selectedHost = null },
         )

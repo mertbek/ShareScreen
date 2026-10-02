@@ -219,6 +219,11 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
                         )
                     }
                 }
+                // The host forgot this device, which then asks the usual way.
+                is ViewerState.Ended if current.reason == EndReason.PASS_REFUSED -> {
+                    LaunchedEffect(current) { attempt++ }
+                    Progress(stringResource(Res.string.viewer_connecting))
+                }
                 is ViewerState.Ended -> EndedMessage(
                     current.reason,
                     pinGiven = pin != null,
@@ -601,6 +606,7 @@ private fun EndedMessage(
         EndReason.HOST_ENDED -> Res.string.viewer_end_host_ended
         EndReason.CONNECTION_LOST -> Res.string.viewer_end_connection_lost
         EndReason.UNSUPPORTED_VERSION -> Res.string.viewer_end_unsupported_version
+        EndReason.PASS_REFUSED -> Res.string.viewer_end_rejected
     }
     val canRetry = reason == EndReason.CONNECTION_FAILED || reason == EndReason.CONNECTION_LOST
     Column(

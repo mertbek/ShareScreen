@@ -103,6 +103,7 @@ fun App(
                 )
                 Screen.Settings -> SettingsScreen(
                     repository = services.settings,
+                    rememberedDevices = services.rememberedDevices,
                     canShareNearby = services.lanServer != null,
                     canBeControlled = services.canBeControlled,
                     versionName = services.versionName,

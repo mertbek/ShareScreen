@@ -11,6 +11,7 @@ import com.mertbek.sharescreen.platform.ScreenSource
 import com.mertbek.sharescreen.rtc.RtcEngine
 import com.mertbek.sharescreen.session.HostSession
 import com.mertbek.sharescreen.session.ViewerSession
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.settings.SettingsRepository
 
 class AppServices(
@@ -24,12 +25,14 @@ class AppServices(
     val lanAdvertiser: LanAdvertiser? = null,
     val lanBrowser: LanBrowser? = null,
     val inputInjector: InputInjector? = null,
+    /** Devices that skip asking on the local network; the browser has none. */
+    val rememberedDevices: RememberedDevices? = null,
     val webApp: String? = null,
     val versionName: String = "dev",
 ) {
     private val signalingClient = SignalingClient()
 
-    val host = HostSession(rtc, signalingClient, deviceName, lanServer, localAddresses, lanAdvertiser, inputInjector)
+    val host = HostSession(rtc, signalingClient, deviceName, lanServer, localAddresses, lanAdvertiser, inputInjector, rememberedDevices)
 
     val hosting = HostController(this)
 
@@ -37,5 +40,5 @@ class AppServices(
 
     val canBeControlled: Boolean get() = inputInjector != null
 
-    fun newViewer() = ViewerSession(rtc, signalingClient, deviceName)
+    fun newViewer() = ViewerSession(rtc, signalingClient, deviceName, rememberedDevices)
 }

@@ -10,6 +10,8 @@ data class ViewerInfo(
     val isConnected: Boolean,
     val viaInternet: Boolean = false,
     val control: ControlRole = ControlRole.NONE,
+    /** Came back on a pass instead of being approved this time. */
+    val remembered: Boolean = false,
 )
 
 enum class RemoteControlAvailability {

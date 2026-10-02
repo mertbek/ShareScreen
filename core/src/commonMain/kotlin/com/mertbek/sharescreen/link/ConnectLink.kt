@@ -21,11 +21,20 @@ sealed interface ConnectLink {
 
     fun toUri(): String
 
-    /** A local network link carries a PIN only when the sharing device asks for one. */
-    data class Lan(val host: String, val port: Int, override val pin: String?, override val name: String? = null) : ConnectLink {
+    /**
+     * A local network link carries a PIN only when the sharing device asks for one, and the
+     * sharing device's [hostId] so a device it remembers can come back without asking.
+     */
+    data class Lan(
+        val host: String,
+        val port: Int,
+        override val pin: String?,
+        override val name: String? = null,
+        val hostId: String? = null,
+    ) : ConnectLink {
         override val address get() = "$host:$port"
 
-        override fun toUri(): String = uri(LAN_AUTHORITY, "h" to host, "p" to port.toString(), "pin" to pin, "n" to name)
+        override fun toUri(): String = uri(LAN_AUTHORITY, "h" to host, "p" to port.toString(), "pin" to pin, "n" to name, "i" to hostId)
     }
 
     data class Internet(
@@ -52,6 +61,7 @@ sealed interface ConnectLink {
         const val LAN_AUTHORITY = "connect"
         const val INTERNET_AUTHORITY = "join"
         const val WEB_PATH = "/join"
+        private const val MAX_HOST_ID_LENGTH = 64
 
         fun parse(value: String): ConnectLink? {
             val uri = parseUri(value.trim()) ?: return null
@@ -65,7 +75,7 @@ sealed interface ConnectLink {
                 LAN_AUTHORITY -> {
                     val host = params["h"]?.takeIf(::isPrivateIpv4) ?: return null
                     val port = params["p"]?.toIntOrNull()?.takeIf { it in 1..65535 } ?: return null
-                    Lan(host, port, pin, name)
+                    Lan(host, port, pin, name, params["i"]?.takeIf { it.isNotBlank() && it.length <= MAX_HOST_ID_LENGTH })
                 }
                 INTERNET_AUTHORITY -> {
                     val server = params["s"]?.let(ServerAddress::normalize) ?: return null

@@ -30,6 +30,7 @@
     <string name="host_internet_failed_only">İnternet sunucusuna (%1$s) ulaşılamadı. Yeniden denemek için paylaşımı durdurup tekrar başlat.</string>
     <string name="host_internet_closed_only">İnternet odası kapandı, yeni kimse katılamaz. İzleyenler izlemeye devam eder; yeni bir oda için paylaşımı yeniden başlat.</string>
     <string name="host_room_code_label">Oda kodu</string>
+    <string name="host_viewer_remembered">Hatırlanan</string>
     <string name="host_viewer_via_internet">internet üzerinden</string>
     <string name="host_qr_hint">Diğer cihazda ShareScreen ile ya da kamerayla okut</string>
     <string name="host_invite_share">Davet bağlantısını paylaş</string>
@@ -75,6 +76,7 @@
     <string name="host_join_request_message">%1$s ekranını izlemek istiyor.</string>
     <string name="host_join_request_message_internet">%1$s ekranını internet üzerinden izlemek istiyor.</string>
     <string name="host_join_request_allow">İzin ver</string>
+    <string name="host_join_request_remember">Bu cihazı hatırla</string>
     <string name="host_join_request_deny">Reddet</string>
 '
     <string name="discover_nearby_title">Yakındaki cihazlar</string>
@@ -125,6 +127,10 @@
     <string name="settings_control_title">Uzaktan kontrole izin ver</string>
     <string name="settings_lan_pin_title">Yakındaki izleyicilerden PIN iste</string>
     <string name="settings_lan_pin_description">Aynı Wi-Fi'daki cihazlar da onayının yanında PIN girmek zorunda kalır. Kafe ya da ofis gibi başkalarının da kullandığı bir ağda paylaşırken aç.</string>
+    <string name="settings_remembered_title">Hatırlanan cihazlar</string>
+    <string name="settings_remembered_description">Bu cihazlar aynı ağdan katıldığında PIN ve onay beklemeden izler. Bir cihazı unutursan yeniden sorması gerekir.</string>
+    <string name="settings_remembered_empty">Hatırlanan cihaz yok. Aynı ağdan gelen bir isteği onaylarken “Bu cihazı hatırla”yı işaretleyebilirsin.</string>
+    <string name="settings_remembered_forget">Unut</string>
     <string name="settings_control_description">İzleyiciler bu cihazı kontrol etmek isteyebilir. Her isteği sen onaylarsın ve kontrolü istediğin an geri alabilirsin. Her zaman tüm ekran paylaşılır.</string>
     <string name="host_control_title">Uzaktan kontrol</string>
     <string name="host_control_needs_service">İzleyicilerin bu cihazı kontrol edebilmesi için erişilebilirlik ayarlarından ShareScreen uzaktan kontrolü aç.</string>

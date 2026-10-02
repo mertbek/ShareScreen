@@ -1,5 +1,9 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.mertbek.sharescreen.signaling
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -28,6 +32,13 @@ enum class ErrorCode {
     @SerialName("resume_failed") RESUME_FAILED,
 }
 
+/**
+ * Shows that a host remembered this viewer: a counter that only grows, signed with the secret the
+ * host handed over, so a copied pass cannot be used again.
+ */
+@Serializable
+data class DevicePass(val key: String, val counter: Long, val proof: String)
+
 interface Routed {
     val from: String
     val to: String
@@ -47,6 +58,7 @@ sealed interface SignalMessage {
         val hostSecret: String? = null,
         val resumeToken: String? = null,
         val protocolVersion: Int = PROTOCOL_VERSION,
+        @EncodeDefault(EncodeDefault.Mode.NEVER) val pass: DevicePass? = null,
     ) : SignalMessage
 
     @Serializable
@@ -62,7 +74,11 @@ sealed interface SignalMessage {
 
     @Serializable
     @SerialName("join_request")
-    data class JoinRequest(val viewerId: String, val deviceName: String) : SignalMessage
+    data class JoinRequest(
+        val viewerId: String,
+        val deviceName: String,
+        @EncodeDefault(EncodeDefault.Mode.NEVER) val pass: DevicePass? = null,
+    ) : SignalMessage
 
     @Serializable
     @SerialName("join_decision")

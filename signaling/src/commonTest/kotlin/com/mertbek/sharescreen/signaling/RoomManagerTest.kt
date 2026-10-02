@@ -370,6 +370,38 @@ class RoomManagerTest {
         assertNotNull(manager.join(FakeLink(), viewerHello(), "10.0.0.5"))
     }
 
+    @Test
+    fun `a pass stands in for the pin and goes to the host to check`() = runTest {
+        val manager = lanManager()
+        val hostLink = FakeLink()
+        manager.join(hostLink, hostHello())
+        hostLink.takeAll()
+        val pass = DevicePass(key = "key", counter = 1, proof = "proof")
+
+        val viewer = assertNotNull(manager.join(FakeLink(), viewerHello(pin = null).copy(pass = pass), "10.0.0.5"))
+
+        assertEquals(messages(JoinRequest(viewer.id, "Viewer phone", pass)), hostLink.received)
+    }
+
+    @Test
+    fun `a pass gets through while someone else is guessing the pin`() = runTest {
+        val manager = lockingManager { 0L }
+        manager.join(FakeLink(), hostHello())
+        manager.guessWrong(3, address = null)
+
+        assertNotNull(manager.join(FakeLink(), viewerHello(pin = null).copy(pass = DevicePass("key", 1, "proof"))))
+    }
+
+    @Test
+    fun `a pass the host turned away does not keep the device from asking the usual way`() = runTest {
+        val manager = lanManager()
+        val host = assertNotNull(manager.join(FakeLink(), hostHello(pin = null)))
+        val stale = assertNotNull(manager.join(FakeLink(), viewerHello(pin = null).copy(pass = DevicePass("key", 1, "proof")), "10.0.0.5"))
+        manager.handle(host, JoinDecision(stale.id, accepted = false))
+
+        assertNotNull(manager.join(FakeLink(), viewerHello(pin = null), "10.0.0.5"))
+    }
+
     private fun lockingManager(clock: () -> Long) = RoomManager(
         SignalingConfig(singleRoom = true, hostSecret = SECRET, maxWrongPinsPerMinute = 3),
         clockMillis = clock,

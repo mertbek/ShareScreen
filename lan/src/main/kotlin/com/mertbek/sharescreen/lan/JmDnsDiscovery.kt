@@ -18,16 +18,21 @@ import kotlin.concurrent.thread
 private const val SERVICE_TYPE = "_sharescreen._tcp.local."
 private const val ATTRIBUTE_PROTOCOL = "v"
 private const val ATTRIBUTE_PIN = "pin"
+private const val ATTRIBUTE_ID = "id"
 private const val TAG = "JmDnsDiscovery"
 
 class JmDnsAdvertiser(private val addresses: NetworkAddresses = NetworkAddresses()) : LanAdvertiser {
     private var instances = emptyList<JmDNS>()
 
     @Synchronized
-    override fun register(name: String, port: Int, pinRequired: Boolean) {
+    override fun register(name: String, port: Int, pinRequired: Boolean, id: String?) {
         unregister()
         val targets = addresses.addresses()
-        val attributes = mapOf(ATTRIBUTE_PROTOCOL to PROTOCOL_VERSION.toString(), ATTRIBUTE_PIN to if (pinRequired) "1" else "0")
+        val attributes = buildMap {
+            put(ATTRIBUTE_PROTOCOL, PROTOCOL_VERSION.toString())
+            put(ATTRIBUTE_PIN, if (pinRequired) "1" else "0")
+            if (id != null) put(ATTRIBUTE_ID, id)
+        }
         thread(isDaemon = true, name = "mdns-register") {
             val created = targets.mapNotNull { address ->
                 runCatching {
@@ -99,7 +104,8 @@ class JmDnsBrowser(
             val host = event.info.inet4Addresses.firstOrNull()?.hostAddress ?: return
             if (excludeOwn && host in own) return
             val pinRequired = event.info.getPropertyString(ATTRIBUTE_PIN) != "0"
-            val found = DiscoveredHost(event.name, host, event.info.port, pinRequired)
+            val id = event.info.getPropertyString(ATTRIBUTE_ID)?.takeIf { it.isNotBlank() }
+            val found = DiscoveredHost(event.name, host, event.info.port, pinRequired, id)
             _hosts.update { list -> list.filterNot { it.name == found.name } + found }
         }
     }

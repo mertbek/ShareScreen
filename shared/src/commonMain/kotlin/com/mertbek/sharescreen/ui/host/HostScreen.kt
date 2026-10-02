@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -60,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -144,7 +147,8 @@ fun HostScreen(
         if (pending != null) {
             JoinRequestDialog(
                 viewer = pending,
-                onApprove = { host.approve(pending.id) },
+                canRemember = !pending.viaInternet && services.rememberedDevices != null,
+                onApprove = { remember -> host.approve(pending.id, remember) },
                 onReject = { host.reject(pending.id) },
             )
         } else if (controlRequest != null) {
@@ -337,7 +341,7 @@ private fun ConnectionSection(services: AppServices, state: HostState) {
                         if (showInternet && room != null) {
                             InternetDetails(services, room, state.pin, state.deviceName)
                         } else if (hasLan) {
-                            NearbyDetails(state)
+                            NearbyDetails(state, services.rememberedDevices?.hostId)
                         } else {
                             Text(text = stringResource(Res.string.host_no_network), color = MaterialTheme.colorScheme.error)
                         }
@@ -353,13 +357,13 @@ private fun ConnectionSection(services: AppServices, state: HostState) {
 }
 
 @Composable
-private fun NearbyDetails(state: HostState.Live) {
+private fun NearbyDetails(state: HostState.Live, hostId: String?) {
     val pin = state.pin.takeIf { state.lanPin }
     val primaryAddress = state.addresses.firstOrNull()
     if (primaryAddress == null) {
         Text(text = stringResource(Res.string.host_no_network), color = MaterialTheme.colorScheme.error)
     } else {
-        LinkQrCode(ConnectLink.Lan(primaryAddress, state.port, pin, state.deviceName).toUri())
+        LinkQrCode(ConnectLink.Lan(primaryAddress, state.port, pin, state.deviceName, hostId).toUri())
     }
     state.addresses.forEach { address ->
         CodeChip(stringResource(Res.string.host_address_label), "$address:${state.port}", AddressTextStyle)
@@ -489,6 +493,7 @@ private fun ViewersSection(viewers: List<ViewerInfo>, onKick: (String) -> Unit) 
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             StatusPill(stringResource(if (viewer.isConnected) Res.string.host_viewer_watching else Res.string.host_viewer_connecting))
                             if (viewer.viaInternet) StatusPill(stringResource(Res.string.host_viewer_via_internet))
+                            if (viewer.remembered) StatusPill(stringResource(Res.string.host_viewer_remembered))
                             if (viewer.control == ControlRole.GRANTED) {
                                 StatusPill(
                                     text = stringResource(Res.string.host_viewer_controlling),
@@ -551,16 +556,33 @@ private fun PreviewSection(services: AppServices, capture: CapturedMedia, audioE
 }
 
 @Composable
-private fun JoinRequestDialog(viewer: PendingViewer, onApprove: () -> Unit, onReject: () -> Unit) {
+private fun JoinRequestDialog(viewer: PendingViewer, canRemember: Boolean, onApprove: (remember: Boolean) -> Unit, onReject: () -> Unit) {
+    var rememberDevice by remember(viewer.id) { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = {},
         icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = null) },
         title = { Text(stringResource(Res.string.host_join_request_title)) },
         text = {
-            val message = if (viewer.viaInternet) Res.string.host_join_request_message_internet else Res.string.host_join_request_message
-            Text(stringResource(message, viewer.deviceName))
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                val message = if (viewer.viaInternet) Res.string.host_join_request_message_internet else Res.string.host_join_request_message
+                Text(stringResource(message, viewer.deviceName))
+                if (canRemember) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(value = rememberDevice, role = Role.Checkbox, onValueChange = { rememberDevice = it }),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = rememberDevice, onCheckedChange = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(Res.string.host_join_request_remember), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
         },
-        confirmButton = { TextButton(onClick = onApprove) { Text(stringResource(Res.string.host_join_request_allow)) } },
+        confirmButton = {
+            TextButton(onClick = { onApprove(rememberDevice) }) { Text(stringResource(Res.string.host_join_request_allow)) }
+        },
         dismissButton = { TextButton(onClick = onReject) { Text(stringResource(Res.string.host_join_request_deny)) } },
     )
 }

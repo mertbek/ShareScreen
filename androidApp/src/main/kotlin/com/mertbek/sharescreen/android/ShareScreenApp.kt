@@ -17,6 +17,7 @@ import com.mertbek.sharescreen.capture.ScreenAudioInput
 import com.mertbek.sharescreen.lan.EmbeddedLanServer
 import com.mertbek.sharescreen.platform.DeviceName
 import com.mertbek.sharescreen.rtc.AndroidRtcEngine
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.settings.SettingsRepository
 import com.mertbek.sharescreen.util.Log
 import com.russhwolf.settings.SharedPreferencesSettings
@@ -50,6 +51,7 @@ class ShareScreenApp : Application() {
             lanAdvertiser = NsdAdvertiser(this),
             lanBrowser = NsdBrowser(this, addresses),
             inputInjector = inputInjector,
+            rememberedDevices = RememberedDevices(SharedPreferencesSettings(getSharedPreferences("remembered", MODE_PRIVATE))),
             webApp = BuildConfig.WEB_APP.ifEmpty { null },
             versionName = BuildConfig.VERSION_NAME,
         )

@@ -18,8 +18,10 @@ import com.mertbek.sharescreen.session.InternetRoom
 import com.mertbek.sharescreen.session.JoinTarget
 import com.mertbek.sharescreen.session.ViewerSession
 import com.mertbek.sharescreen.session.ViewerState
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.signaling.RoomManager
 import com.mertbek.sharescreen.signaling.SignalingConfig
+import com.russhwolf.settings.MapSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.WebSockets
@@ -160,6 +162,75 @@ class SessionTest {
         withoutPin.connect(JoinTarget.Lan("127.0.0.1", live.port), pin = null)
         assertEquals(EndReason.INVALID_PIN, eventually { withoutPin.state.value as? ViewerState.Ended }.reason)
 
+        setup.host.stop().join()
+    }
+
+    private class Remembering {
+        val hostDevices = RememberedDevices(MapSettings())
+        val viewerDevices = RememberedDevices(MapSettings())
+        val engine = FakeRtcEngine()
+        val host = HostSession(
+            rtc = engine,
+            signalingClient = SignalingClient(cioClient()),
+            deviceName = DeviceName("Host"),
+            lanServer = EmbeddedLanServer(),
+            rememberedDevices = hostDevices,
+        )
+        private val client = SignalingClient(cioClient())
+
+        fun viewer() = ViewerSession(engine, client, DeviceName("Tablet"), viewerDevices)
+    }
+
+    /** Shares, lets a viewer in with "remember this device" ticked and sends it away again. */
+    private suspend fun Remembering.rememberViewer(lanPin: Boolean): JoinTarget.Lan {
+        host.start(FakeMedia(hasAudio = true), internetServer = null, allowControl = false, lanPin = lanPin)
+        val live = eventually { host.state.value as? HostState.Live }
+        val target = JoinTarget.Lan("127.0.0.1", live.port, hostDevices.hostId)
+        val first = viewer()
+        first.connect(target, live.pin)
+        host.approve(eventually { (host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }.id, remember = true)
+        eventually { first.state.value as? ViewerState.Watching }
+        eventually { viewerDevices.knowsHost(hostDevices.hostId).takeIf { it } }
+        first.close()
+        eventually { (host.state.value as? HostState.Live)?.viewers?.isEmpty()?.takeIf { it } }
+        return target
+    }
+
+    @Test
+    fun `a remembered device comes back without the pin or an approval`() = runBlocking {
+        val setup = Remembering()
+        val target = setup.rememberViewer(lanPin = true)
+        assertEquals(listOf("Tablet"), setup.hostDevices.viewers.value.map { it.name })
+
+        val again = setup.viewer()
+        again.connect(target, pin = null)
+        eventually { again.state.value as? ViewerState.Watching }
+        val live = setup.host.state.value as HostState.Live
+        assertTrue(live.viewers.single().remembered)
+        assertTrue(live.pendingViewers.isEmpty())
+
+        again.close()
+        setup.host.stop().join()
+    }
+
+    @Test
+    fun `a device the host forgot asks the usual way again`() = runBlocking {
+        val setup = Remembering()
+        val target = setup.rememberViewer(lanPin = false)
+        setup.hostDevices.forgetViewer(setup.hostDevices.viewers.value.single().key)
+
+        val refused = setup.viewer()
+        refused.connect(target, pin = null)
+        assertEquals(EndReason.PASS_REFUSED, eventually { refused.state.value as? ViewerState.Ended }.reason)
+        assertFalse(setup.viewerDevices.knowsHost(setup.hostDevices.hostId))
+
+        val asking = setup.viewer()
+        asking.connect(target, pin = null)
+        setup.host.approve(eventually { (setup.host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }.id)
+        eventually { asking.state.value as? ViewerState.Watching }
+        assertFalse((setup.host.state.value as HostState.Live).viewers.single().remembered)
+
+        asking.close()
         setup.host.stop().join()
     }
 

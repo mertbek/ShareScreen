@@ -29,6 +29,13 @@ class ConnectLinkTest {
     }
 
     @Test
+    fun `lan links carry the sharing device's id`() {
+        val link = ConnectLink.Lan(host = "10.0.0.5", port = 8080, pin = null, name = "Tablet", hostId = "Wd2xkZf3TGqjLkmd1P0sAw")
+        assertEquals(link, ConnectLink.parse(link.toUri()))
+        assertEquals(null, (ConnectLink.parse("sharescreen://connect?h=10.0.0.5&p=8080&i=") as ConnectLink.Lan).hostId)
+    }
+
+    @Test
     fun `internet links round-trip`() {
         val link = ConnectLink.Internet(server = "wss://share.example.com:8443", roomCode = "ABC234", pin = "000001", name = "Tablet")
         assertEquals(link, ConnectLink.parse(link.toUri()))

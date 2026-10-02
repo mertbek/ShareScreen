@@ -106,6 +106,11 @@ sealed interface ControlMessage {
     @Serializable
     @SerialName("key")
     data class Press(val key: ControlKey) : ControlMessage
+
+    /** The host remembers the viewer, which can come back on the local network without asking. */
+    @Serializable
+    @SerialName("remember")
+    data class Remember(val hostId: String, val key: String, val secret: String) : ControlMessage
 }
 
 object ControlCodec {

@@ -24,6 +24,7 @@ import com.mertbek.sharescreen.platform.DeviceName
 import com.mertbek.sharescreen.rtc.DesktopRtcEngine
 import com.mertbek.sharescreen.rtc.DesktopScreenCapture
 import com.mertbek.sharescreen.rtc.DesktopScreenSource
+import com.mertbek.sharescreen.settings.RememberedDevices
 import com.mertbek.sharescreen.settings.SettingsRepository
 import com.russhwolf.settings.PreferencesSettings
 import kotlinx.coroutines.channels.Channel
@@ -52,6 +53,7 @@ private fun createServices(): AppServices {
         lanAdvertiser = JmDnsAdvertiser(addresses),
         lanBrowser = JmDnsBrowser(addresses),
         inputInjector = DesktopInputInjector(),
+        rememberedDevices = RememberedDevices(PreferencesSettings(Preferences.userRoot().node("com/mertbek/sharescreen/remembered"))),
         webApp = ServerConfig.webApp,
         versionName = ServerConfig.versionName,
     )

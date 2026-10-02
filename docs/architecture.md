@@ -71,6 +71,14 @@ mDNS record. Viewers treat a record without it as an older host that wants the P
 that joins without a PIN is asked for one when the host answers `invalid_pin`. Older viewers
 always send a PIN, which a room without one ignores.
 
+The host also announces `id`, which stays the same between sessions, and puts it in local network
+links as `i`. A viewer the host remembers gets a key and a secret in a `remember` control message,
+so the secret only travels over the encrypted data channel. Coming back, the viewer sends a `pass`
+in its hello: the key, a counter that only grows and an HMAC-SHA256 of both with the secret. The
+LAN server lets a pass skip the PIN and passes it on in the join request; the host lets the viewer
+in when the pass checks out and the counter is new, and otherwise turns it away without asking, after
+which the viewer forgets the host and asks the usual way.
+
 ## Media
 
 - Codec: H.264 where both sides offer it, VP8 otherwise.
