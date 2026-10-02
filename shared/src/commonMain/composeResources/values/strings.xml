@@ -149,6 +149,8 @@
     <string name="home_share_subtitle_internet">Share it with a room code or an invite link</string>
     <string name="home_watch_subtitle_internet">Join a shared screen with a room code</string>
     <string name="home_how_connect_internet">Send the invite link, or the room code and PIN, to whoever should watch.</string>
+    <string name="home_share_subtitle_app">Phone browsers cannot share the screen, so this opens the ShareScreen app</string>
+    <string name="home_share_unavailable">This browser cannot share the screen. Share from a computer, or with the ShareScreen app on Android.</string>
     <string name="host_idle_description_internet">Start sharing to get a room code and PIN for the people who should watch. Your browser will ask what to share first.</string>
     <string name="host_audio_unavailable">Sound is not shared from this device.</string>
     <string name="host_control_request_message_desktop">%1$s wants to control this computer. They will be able to move the mouse, type and use any program or command as if they were sitting at it. Only allow someone you trust.</string>

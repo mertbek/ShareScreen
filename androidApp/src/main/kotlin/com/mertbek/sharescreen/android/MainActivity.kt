@@ -131,13 +131,18 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
-            Intent.ACTION_VIEW -> pendingLink.value = intent.dataString?.let(ConnectLink::parse)
+            Intent.ACTION_VIEW -> if (intent.data?.scheme == ConnectLink.SCHEME && intent.data?.host == SHARE_HOST) {
+                hostRequested.value = true
+            } else {
+                pendingLink.value = intent.dataString?.let(ConnectLink::parse)
+            }
             ACTION_OPEN_HOST -> hostRequested.value = true
         }
     }
 
     companion object {
         private const val ACTION_OPEN_HOST = "com.mertbek.sharescreen.action.OPEN_HOST"
+        private const val SHARE_HOST = "share"
 
         fun openHostIntent(context: Context): Intent =
             Intent(context, MainActivity::class.java)

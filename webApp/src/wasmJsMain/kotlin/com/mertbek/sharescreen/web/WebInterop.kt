@@ -12,6 +12,17 @@ internal external fun clearPageFragment()
 @JsFun("() => navigator.userAgent")
 internal external fun userAgent(): String
 
+@JsFun("() => !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)")
+internal external fun canCaptureScreen(): Boolean
+
+@JsFun("() => /Android/.test(navigator.userAgent)")
+internal external fun isAndroid(): Boolean
+
+@JsFun(
+    "(fallback) => { location.href = 'intent://share#Intent;scheme=sharescreen;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end'; }"
+)
+internal external fun openAndroidShare(fallback: String)
+
 @JsFun("(url) => { window.open(url, '_blank', 'noopener'); }")
 internal external fun openWindow(url: String)
 

@@ -57,7 +57,7 @@ appends a suffix to the application id so a build installs next to another one.
 |---|---|---|---|
 | Android | yes | yes | yes (`full`) |
 | Desktop | yes | yes | yes |
-| Web | yes, over the internet | yes, over the internet | no |
+| Web | yes, over the internet, from desktop browsers | yes, over the internet | no |
 
 iOS needs macOS and Xcode and is not part of this repository yet.
 

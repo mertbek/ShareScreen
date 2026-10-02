@@ -147,6 +147,8 @@
     <string name="home_share_subtitle_internet">Oda kodu veya davet bağlantısıyla paylaş</string>
     <string name="home_watch_subtitle_internet">Oda koduyla paylaşılan bir ekrana katıl</string>
     <string name="home_how_connect_internet">Davet bağlantısını ya da oda kodu ve PIN'i izleyecek kişiye gönder.</string>
+    <string name="home_share_subtitle_app">Telefon tarayıcıları ekran paylaşamadığı için ShareScreen uygulamasını açar</string>
+    <string name="home_share_unavailable">Bu tarayıcı ekran paylaşamıyor. Bilgisayardan ya da Android'deki ShareScreen uygulamasından paylaşabilirsin.</string>
     <string name="host_idle_description_internet">Paylaşımı başlattığında izleyecek kişiler için bir oda kodu ve PIN alırsın. Tarayıcı önce neyi paylaşacağını soracak.</string>
     <string name="host_audio_unavailable">Bu cihazdan ses paylaşılmıyor.</string>
     <string name="host_control_request_message_desktop">%1$s bu bilgisayarı kontrol etmek istiyor. Başında oturuyormuş gibi fareyi oynatabilecek, yazabilecek ve her programı veya komutu kullanabilecek. Yalnızca güvendiğin birine izin ver.</string>

@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ScreenShare
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Settings
@@ -48,9 +49,11 @@ private val WideLayout = 700.dp
 @Composable
 fun HomeScreen(
     canHost: Boolean,
+    canShareInApp: Boolean,
     canBeControlled: Boolean,
     canFindNearby: Boolean,
     onShareClick: () -> Unit,
+    onShareInAppClick: () -> Unit,
     onWatchClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -76,8 +79,14 @@ fun HomeScreen(
                         ActionCard(
                             icon = Icons.AutoMirrored.Outlined.ScreenShare,
                             title = stringResource(Res.string.home_share_title),
-                            subtitle = stringResource(if (canFindNearby) Res.string.home_share_subtitle else Res.string.home_share_subtitle_internet),
-                            onClick = onShareClick,
+                            subtitle = stringResource(
+                                when {
+                                    !canHost -> Res.string.home_share_subtitle_app
+                                    canFindNearby -> Res.string.home_share_subtitle
+                                    else -> Res.string.home_share_subtitle_internet
+                                },
+                            ),
+                            onClick = if (canHost) onShareClick else onShareInAppClick,
                             modifier = modifier,
                         )
                     }
@@ -92,8 +101,11 @@ fun HomeScreen(
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                     }
-                    if (!canHost) {
+                    if (!canHost && !canShareInApp) {
                         watch(Modifier)
+                        SoftCard {
+                            InfoRow(Icons.Outlined.Info, stringResource(Res.string.home_share_unavailable), Modifier.padding(20.dp))
+                        }
                     } else if (wide) {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             share(Modifier.weight(1f))

@@ -34,7 +34,7 @@ private fun createServices() = AppServices(
     deviceName = DeviceName(deviceName()),
     settings = SettingsRepository(StorageSettings(), ServerConfig.defaultServer),
     ui = WebUi(),
-    screenSource = WebScreenSource(),
+    screenSource = WebScreenSource().takeIf { canCaptureScreen() },
     webApp = pageAddress().takeIf { it.startsWith("https://") } ?: ServerConfig.webApp,
     versionName = ServerConfig.versionName,
 )

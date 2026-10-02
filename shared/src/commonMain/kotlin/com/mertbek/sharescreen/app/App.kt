@@ -93,9 +93,11 @@ fun App(
             when (screen) {
                 Screen.Home -> HomeScreen(
                     canHost = services.canHost,
+                    canShareInApp = services.ui.canShareInApp,
                     canBeControlled = services.canBeControlled,
                     canFindNearby = services.lanBrowser != null,
                     onShareClick = { stack += Screen.Host },
+                    onShareInAppClick = services.ui::shareInApp,
                     onWatchClick = { stack += Screen.Discover },
                     onSettingsClick = { stack += Screen.Settings },
                 )

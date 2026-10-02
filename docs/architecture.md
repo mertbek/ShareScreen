@@ -12,7 +12,7 @@ signaling service only introduces the devices.
 |---|---|---|---|---|---|---|
 | Android | yes (MediaProjection) | yes | yes (accessibility service) | yes | yes (NSD) | yes |
 | Desktop | yes (screen capturer) | yes | yes (`java.awt.Robot`) | yes | yes (mDNS) | yes |
-| Web | yes (`getDisplayMedia`) | yes | no (browsers cannot inject input) | yes | no | no |
+| Web | yes (`getDisplayMedia`, desktop browsers only) | yes | no (browsers cannot inject input) | yes | no | no |
 | iOS | later | later | no | later | later | later |
 
 The web app only uses the internet signaling server: a page served over https cannot open

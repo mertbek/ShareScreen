@@ -43,6 +43,7 @@
                 <data android:scheme="sharescreen" />
                 <data android:host="connect" />
                 <data android:host="join" />
+                <data android:host="share" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

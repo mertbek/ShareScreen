@@ -10,6 +10,10 @@ import com.mertbek.sharescreen.rtc.WebVideoView
 class WebUi : PlatformUi {
     override val canOverlayVideo: Boolean get() = false
 
+    override val canShareInApp: Boolean = isAndroid()
+
+    override fun shareInApp() = openAndroidShare(RELEASES_URL)
+
     @Composable
     override fun VideoView(video: RemoteVideo, modifier: Modifier, zoom: Zoom, onVideoSize: (Int, Int) -> Unit) =
         WebVideoView(video, modifier, zoom, onVideoSize)
@@ -19,4 +23,8 @@ class WebUi : PlatformUi {
     override fun openUrl(url: String) = openWindow(url)
 
     override fun copyToClipboard(text: String) = writeClipboard(text)
+
+    private companion object {
+        const val RELEASES_URL = "https://github.com/mertbek/ShareScreen/releases/latest"
+    }
 }
