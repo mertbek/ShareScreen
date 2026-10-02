@@ -264,4 +264,96 @@ class SessionTest {
         host.stop().join()
         server.stop(100, 500)
     }
+
+    @Test
+    fun `an approval given while the host reconnects still lets the viewer in`() = runBlocking {
+        approvalAcrossDrop { relay -> relay.refusing = true; relay.cutAll() }
+    }
+
+    @Test
+    fun `an approval lost on a dead connection is sent again after the reconnect`() = runBlocking {
+        approvalAcrossDrop { relay -> relay.swallowing = true }
+    }
+
+    private suspend fun approvalAcrossDrop(drop: (Relay) -> Unit) {
+        val server = embeddedServer(ServerCIO, port = 0, host = "127.0.0.1") { signalingModule(RoomManager(SignalingConfig())) }
+        server.startSuspend(wait = false)
+        val relay = Relay(server.engine.resolvedConnectors().first().port)
+        val address = "ws://127.0.0.1:${relay.port}"
+        val engine = FakeRtcEngine()
+        val host = HostSession(engine, SignalingClient(cioClient()), DeviceName("Host"))
+        val viewer = ViewerSession(engine, SignalingClient(cioClient()), DeviceName("Viewer"))
+        try {
+            host.start(FakeMedia(), internetServer = address, allowControl = false)
+            val room = eventually { (host.state.value as? HostState.Live)?.internetRoom as? InternetRoom.Open }
+            viewer.connect(JoinTarget.Internet(address, room.roomCode), (host.state.value as HostState.Live).pin)
+            val pending = eventually { (host.state.value as? HostState.Live)?.pendingViewers?.firstOrNull() }
+
+            drop(relay)
+            if (relay.refusing) eventually { ((host.state.value as HostState.Live).internetRoom as? InternetRoom.Open)?.takeIf { it.reconnecting } }
+            host.approve(pending.id)
+            kotlinx.coroutines.delay(1_000)
+            relay.cutAll()
+            relay.refusing = false
+            relay.swallowing = false
+
+            withTimeout(30.seconds) {
+                while (viewer.state.value !is ViewerState.Watching) kotlinx.coroutines.delay(20)
+            }
+        } finally {
+            viewer.close()
+            host.stop().join()
+            relay.close()
+            server.stop(100, 500)
+        }
+    }
+
+    /** Passes TCP through to the server until the test cuts, refuses or swallows the traffic. */
+    private class Relay(private val target: Int) {
+        private val server = java.net.ServerSocket(0, 50, java.net.InetAddress.getLoopbackAddress())
+        private val sockets = java.util.concurrent.CopyOnWriteArrayList<java.net.Socket>()
+        @Volatile var refusing = false
+        @Volatile var swallowing = false
+        val port: Int get() = server.localPort
+
+        init {
+            kotlin.concurrent.thread(isDaemon = true) {
+                while (!server.isClosed) {
+                    val client = runCatching { server.accept() }.getOrNull() ?: break
+                    if (refusing) {
+                        client.close()
+                        continue
+                    }
+                    val upstream = java.net.Socket(java.net.InetAddress.getLoopbackAddress(), target)
+                    sockets += client
+                    sockets += upstream
+                    pipe(client, upstream)
+                    pipe(upstream, client)
+                }
+            }
+        }
+
+        private fun pipe(from: java.net.Socket, to: java.net.Socket) = kotlin.concurrent.thread(isDaemon = true) {
+            runCatching {
+                val buffer = ByteArray(8192)
+                while (true) {
+                    val read = from.getInputStream().read(buffer)
+                    if (read < 0) break
+                    if (!swallowing) to.getOutputStream().write(buffer, 0, read)
+                }
+            }
+            runCatching { from.close() }
+            runCatching { to.close() }
+        }
+
+        fun cutAll() {
+            sockets.forEach { runCatching { it.close() } }
+            sockets.clear()
+        }
+
+        fun close() {
+            cutAll()
+            server.close()
+        }
+    }
 }

@@ -122,6 +122,7 @@ class ViewerSession(
 
     private var controlChannel: ControlChannel? = null
     private var connection: SignalingConnection? = null
+    private val unsent = ArrayDeque<SignalMessage>()
     private var resumeToken: String? = null
     private var recovery: Job? = null
     private var peer: RtcPeer? = null
@@ -164,6 +165,11 @@ class ViewerSession(
 
     private fun sendControl(message: ControlMessage) = scope.launch { controlChannel?.send(message) }
 
+    /** Sends now, or once the connection is back while it is being resumed. */
+    private fun send(message: SignalMessage) {
+        connection?.send(message) ?: unsent.addLast(message)
+    }
+
     private fun sendWhenGranted(message: ControlMessage) = scope.launch {
         if (_control.value.role == ControlRole.GRANTED) controlChannel?.send(message)
     }
@@ -201,6 +207,7 @@ class ViewerSession(
         }
         while (true) {
             this.connection = connection
+            while (unsent.isNotEmpty()) connection.send(unsent.removeFirst())
             try {
                 connection.messages.collect(::handle)
             } catch (e: CancellationException) {
@@ -286,7 +293,7 @@ class ViewerSession(
             peer.setRemoteDescription(SessionDescription(SdpType.OFFER, offer.sdp))
             val answer = peer.createAnswer().let { it.copy(sdp = OpusSdp.preferStereoMusic(it.sdp)) }
             peer.setLocalDescription(answer)
-            connection?.send(SignalMessage.Answer(to = offer.from, sdp = answer.sdp))
+            send(SignalMessage.Answer(to = offer.from, sdp = answer.sdp))
         } catch (e: RtcException) {
             Log.e(TAG, "Negotiation failed", e)
             end(EndReason.CONNECTION_FAILED)
@@ -298,7 +305,7 @@ class ViewerSession(
             when (event) {
                 is RtcEvent.LocalIceCandidate -> {
                     val hostId = hostId ?: return@collect
-                    connection?.send(
+                    send(
                         SignalMessage.Ice(
                             to = hostId,
                             candidate = event.candidate.candidate,
@@ -373,6 +380,7 @@ class ViewerSession(
         peer = null
         connection?.let { runCatching { it.leave() } }
         connection = null
+        unsent.clear()
         resumeToken = null
     }
 

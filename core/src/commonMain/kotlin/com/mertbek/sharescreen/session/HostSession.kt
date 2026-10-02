@@ -62,10 +62,29 @@ class HostSession(
     private val lanAdvertiser: LanAdvertiser? = null,
     private val inputInjector: InputInjector? = null,
 ) {
-    private class Link(var connection: SignalingConnection, val viaInternet: Boolean) {
+    private class Link(connection: SignalingConnection, val viaInternet: Boolean) {
+        var connection = connection
+            private set
         var iceServers: List<IceServerConfig> = emptyList()
         var resumeToken: String? = null
         var isConnected = true
+            private set
+        private val unsent = ArrayDeque<SignalMessage>()
+
+        /** Sends now, or once the connection is back while it is being resumed. */
+        fun send(message: SignalMessage) {
+            if (isConnected) connection.send(message) else unsent.addLast(message)
+        }
+
+        fun lost() {
+            isConnected = false
+        }
+
+        fun resumed(connection: SignalingConnection) {
+            this.connection = connection
+            isConnected = true
+            while (unsent.isNotEmpty()) connection.send(unsent.removeFirst())
+        }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
@@ -82,6 +101,7 @@ class HostSession(
     private val controlChannels = HashMap<String, ControlChannel>()
     private val recoveries = HashMap<String, Job>()
     private val connectedOnce = HashSet<String>()
+    private val offers = HashMap<String, String>()
     private var allowControl = false
     private var controlAvailable = false
 
@@ -106,6 +126,7 @@ class HostSession(
         controlChannels.clear()
         recoveries.clear()
         connectedOnce.clear()
+        offers.clear()
         peers.values.forEach(RtcPeer::close)
         peers.clear()
         viewerLinks.clear()
@@ -123,7 +144,7 @@ class HostSession(
         val link = viewerLinks[viewerId] ?: return@launchInSession
         val media = media ?: return@launchInSession
 
-        link.connection.send(SignalMessage.JoinDecision(viewerId, accepted = true))
+        link.send(SignalMessage.JoinDecision(viewerId, accepted = true))
         val peer = rtc.createPeer(link.iceServers)
         peers[viewerId] = peer
         updateLive {
@@ -139,7 +160,8 @@ class HostSession(
             launch { control.messages.collect { onControlMessage(viewerId, it) } }
             val offer = peer.createOffer().let { it.copy(sdp = OpusSdp.preferStereoMusic(it.sdp)) }
             peer.setLocalDescription(offer)
-            link.connection.send(SignalMessage.Offer(to = viewerId, sdp = offer.sdp))
+            offers[viewerId] = offer.sdp
+            link.send(SignalMessage.Offer(to = viewerId, sdp = offer.sdp))
         } catch (e: RtcException) {
             Log.e(TAG, "Could not negotiate with $viewerId", e)
             disconnect(viewerId)
@@ -148,7 +170,7 @@ class HostSession(
 
     fun reject(viewerId: String) = launchInSession {
         takePending(viewerId) ?: return@launchInSession
-        viewerLinks.remove(viewerId)?.connection?.send(SignalMessage.JoinDecision(viewerId, accepted = false))
+        viewerLinks.remove(viewerId)?.send(SignalMessage.JoinDecision(viewerId, accepted = false))
     }
 
     fun kick(viewerId: String) = launchInSession { disconnect(viewerId) }
@@ -244,14 +266,13 @@ class HostSession(
             } catch (e: Exception) {
                 Log.w(TAG, "Internet signaling failed", e)
             }
-            link.isConnected = false
+            link.lost()
             runCatching { link.connection.close() }
             updateLive { live ->
                 val room = live.internetRoom as? InternetRoom.Open ?: return@updateLive live
                 live.copy(internetRoom = room.copy(reconnecting = true))
             }
-            link.connection = resumeInternet(server, link) ?: break
-            link.isConnected = true
+            link.resumed(resumeInternet(server, link) ?: break)
         }
         internetLink = null
         val pendingIds = (_state.value as? HostState.Live)?.pendingViewers.orEmpty().map { it.id }.toSet()
@@ -295,6 +316,13 @@ class HostSession(
                 }
                 if (message.resumed) {
                     recoveries.keys.filter { viewerLinks[it] === link }.forEach { restartIce(it) }
+                    // An approval or offer sent just before the connection dropped may never have arrived.
+                    for ((viewerId, sdp) in offers) {
+                        if (viewerLinks[viewerId] !== link || viewerId in connectedOnce) continue
+                        if (peers[viewerId]?.hasLocalOffer != true) continue
+                        link.send(SignalMessage.JoinDecision(viewerId, accepted = true))
+                        link.send(SignalMessage.Offer(to = viewerId, sdp = sdp))
+                    }
                 }
             }
             is SignalMessage.Error if message.code == ErrorCode.RESUME_FAILED -> link.resumeToken = null
@@ -320,7 +348,7 @@ class HostSession(
     private suspend fun forwardEvents(viewerId: String, peer: RtcPeer, link: Link) {
         peer.events.collect { event ->
             when (event) {
-                is RtcEvent.LocalIceCandidate -> link.connection.send(
+                is RtcEvent.LocalIceCandidate -> link.send(
                     SignalMessage.Ice(
                         to = viewerId,
                         candidate = event.candidate.candidate,
@@ -377,7 +405,8 @@ class HostSession(
             peer.restartIce()
             val offer = peer.createOffer().let { it.copy(sdp = OpusSdp.preferStereoMusic(it.sdp)) }
             peer.setLocalDescription(offer)
-            link.connection.send(SignalMessage.Offer(to = viewerId, sdp = offer.sdp))
+            offers[viewerId] = offer.sdp
+            link.send(SignalMessage.Offer(to = viewerId, sdp = offer.sdp))
             Log.i(TAG, "Restarting ICE with $viewerId")
         } catch (e: RtcException) {
             Log.w(TAG, "Could not restart ICE with $viewerId", e)
@@ -452,7 +481,7 @@ class HostSession(
     }
 
     private fun disconnect(viewerId: String) {
-        viewerLinks[viewerId]?.connection?.send(SignalMessage.Kick(viewerId))
+        viewerLinks[viewerId]?.send(SignalMessage.Kick(viewerId))
         remove(viewerId)
     }
 
@@ -461,6 +490,7 @@ class HostSession(
         viewerLinks.remove(viewerId)
         recoveries.remove(viewerId)?.cancel()
         connectedOnce -= viewerId
+        offers -= viewerId
         controlChannels.remove(viewerId)?.close()
         peers.remove(viewerId)?.close()
         updateLive { live ->
