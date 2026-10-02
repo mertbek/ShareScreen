@@ -158,7 +158,6 @@
     <string name="viewer_keyboard">Keyboard</string>
     <string name="viewer_paste">Paste this device's clipboard</string>
     <string name="viewer_keyboard_hint">Type here to type on the other device</string>
-    <string name="viewer_show_details">Show stream details</string>
     <string name="viewer_zoom_mode">Zoom and move the picture</string>
     <string name="viewer_reconnecting">Connection interrupted. Reconnecting…</string>
     <string name="host_internet_reconnecting">Reconnecting to the internet server… Viewers keep watching.</string>

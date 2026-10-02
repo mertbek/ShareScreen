@@ -156,7 +156,6 @@
     <string name="viewer_keyboard">Klavye</string>
     <string name="viewer_paste">Bu cihazın panosunu yapıştır</string>
     <string name="viewer_keyboard_hint">Diğer cihazda yazmak için buraya yaz</string>
-    <string name="viewer_show_details">Yayın ayrıntılarını göster</string>
     <string name="viewer_zoom_mode">Görüntüyü yakınlaştır ve kaydır</string>
     <string name="viewer_reconnecting">Bağlantı kesildi. Yeniden bağlanılıyor…</string>
     <string name="host_internet_reconnecting">İnternet sunucusuna yeniden bağlanılıyor… İzleyiciler izlemeye devam ediyor.</string>
