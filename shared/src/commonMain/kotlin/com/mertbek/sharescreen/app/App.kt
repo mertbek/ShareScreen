@@ -16,6 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import com.mertbek.sharescreen.link.ConnectLink
 import com.mertbek.sharescreen.resources.Res
 import com.mertbek.sharescreen.resources.action_cancel
@@ -39,7 +43,7 @@ fun App(
     onShowHostHandled: () -> Unit = {},
 ) {
     ShareScreenTheme {
-        val stack = remember { mutableStateListOf<Screen>(Screen.Home) }
+        val stack = rememberSaveable(saver = BackStackSaver) { mutableStateListOf<Screen>(Screen.Home) }
         val current = stack.last()
         var unconfirmedLink by remember { mutableStateOf<ConnectLink?>(null) }
         val defaultServer = services.settings.settings.value.defaultServer
@@ -126,6 +130,27 @@ private fun ConfirmLinkDialog(link: ConnectLink, onConfirm: () -> Unit, onDismis
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(Res.string.discover_connect)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     )
+}
+
+private val BackStackSaver = listSaver<SnapshotStateList<Screen>, String>(
+    save = { stack -> stack.map(::saveScreen) },
+    restore = { saved -> saved.mapNotNull(::restoreScreen).ifEmpty { listOf(Screen.Home) }.toMutableStateList() },
+)
+
+private fun saveScreen(screen: Screen): String = when (screen) {
+    Screen.Home -> "home"
+    Screen.Host -> "host"
+    Screen.Discover -> "discover"
+    Screen.Settings -> "settings"
+    is Screen.Viewer -> screen.link.toUri()
+}
+
+private fun restoreScreen(saved: String): Screen? = when (saved) {
+    "home" -> Screen.Home
+    "host" -> Screen.Host
+    "discover" -> Screen.Discover
+    "settings" -> Screen.Settings
+    else -> ConnectLink.parse(saved)?.let { Screen.Viewer(it) }
 }
 
 sealed interface Screen {
