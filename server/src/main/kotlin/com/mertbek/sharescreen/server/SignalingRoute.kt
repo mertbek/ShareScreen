@@ -78,7 +78,7 @@ fun Route.signalingRoute(
                 link.send(SignalMessage.Error(ErrorCode.PROTOCOL, "Expected hello"))
                 return@webSocket
             }
-            member = roomManager.join(link, hello) ?: return@webSocket
+            member = roomManager.join(link, hello, call.request.local.remoteAddress) ?: return@webSocket
 
             for (frame in incoming) {
                 if (frame !is Frame.Text) continue

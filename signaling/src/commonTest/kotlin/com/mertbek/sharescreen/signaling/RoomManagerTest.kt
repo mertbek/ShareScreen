@@ -252,28 +252,74 @@ class RoomManagerTest {
         assertEquals("user2", (viewerLink.received.first() as Welcome).iceServers.single().username)
     }
 
+    private fun lockingManager(clock: () -> Long) = RoomManager(
+        SignalingConfig(singleRoom = true, hostSecret = SECRET, maxWrongPinsPerMinute = 3),
+        clockMillis = clock,
+    )
+
+    private suspend fun RoomManager.guessWrong(times: Int, address: String?) = repeat(times) { attempt ->
+        val link = FakeLink()
+        join(link, viewerHello(pin = "00000$attempt"), address)
+        assertEquals(messages(Error(ErrorCode.INVALID_PIN)), link.received)
+    }
+
     @Test
-    fun `guessing the pin locks the room for a minute`() = runTest {
+    fun `guessing the pin locks the guesser out for a minute`() = runTest {
         var now = 0L
-        val manager = RoomManager(
-            SignalingConfig(singleRoom = true, hostSecret = SECRET, maxWrongPinsPerMinute = 3),
-            clockMillis = { now },
-        )
+        val manager = lockingManager { now }
         manager.join(FakeLink(), hostHello())
-        repeat(3) { attempt ->
-            now = attempt * 1_000L
-            val link = FakeLink()
-            manager.join(link, viewerHello(pin = "00000$attempt"))
-            assertEquals(messages(Error(ErrorCode.INVALID_PIN)), link.received)
-        }
+        manager.guessWrong(3, address = "10.0.0.66")
 
         now = 30_000
         val locked = FakeLink()
-        assertNull(manager.join(locked, viewerHello()), "Even the right PIN is refused while locked")
+        assertNull(manager.join(locked, viewerHello(), "10.0.0.66"), "Even the right PIN is refused while locked")
         assertEquals(messages(Error(ErrorCode.TOO_MANY_ATTEMPTS)), locked.received)
 
         now = 61_000
-        assertNotNull(manager.join(FakeLink(), viewerHello()))
+        assertNotNull(manager.join(FakeLink(), viewerHello(), "10.0.0.66"))
+    }
+
+    @Test
+    fun `someone guessing the pin does not keep the others out`() = runTest {
+        val manager = lockingManager { 0L }
+        manager.join(FakeLink(), hostHello())
+        manager.guessWrong(3, address = "10.0.0.66")
+
+        assertNotNull(manager.join(FakeLink(), viewerHello(), "10.0.0.7"))
+    }
+
+    @Test
+    fun `a locked room gives each new address a single guess`() = runTest {
+        val manager = lockingManager { 0L }
+        manager.join(FakeLink(), hostHello())
+        manager.guessWrong(3, address = "10.0.0.66")
+        manager.guessWrong(1, address = "10.0.0.67")
+
+        val again = FakeLink()
+        assertNull(manager.join(again, viewerHello(pin = "999999"), "10.0.0.67"))
+        assertEquals(messages(Error(ErrorCode.TOO_MANY_ATTEMPTS)), again.received)
+    }
+
+    @Test
+    fun `guesses from many addresses lock the room for everyone`() = runTest {
+        val manager = lockingManager { 0L }
+        manager.join(FakeLink(), hostHello())
+        repeat(256) { manager.guessWrong(1, address = "10.0.${it / 250}.${it % 250}") }
+
+        val locked = FakeLink()
+        assertNull(manager.join(locked, viewerHello(), "10.0.9.1"))
+        assertEquals(messages(Error(ErrorCode.TOO_MANY_ATTEMPTS)), locked.received)
+    }
+
+    @Test
+    fun `connections without an address share one lock`() = runTest {
+        val manager = lockingManager { 0L }
+        manager.join(FakeLink(), hostHello())
+        manager.guessWrong(3, address = null)
+
+        val locked = FakeLink()
+        assertNull(manager.join(locked, viewerHello()))
+        assertEquals(messages(Error(ErrorCode.TOO_MANY_ATTEMPTS)), locked.received)
     }
 
     @Test

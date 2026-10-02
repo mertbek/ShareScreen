@@ -87,6 +87,10 @@ class Member internal constructor(
 
 private class Room(val code: String, val pin: String?, val host: Member) {
     val wrongPinTimes = ArrayDeque<Long>()
+
+    /** When each address last gave a wrong PIN; null stands for connections whose address is unknown. */
+    val wrongPinAddresses = HashMap<String?, Long>()
+
     val viewers = LinkedHashMap<String, Member>()
 
     fun member(id: String): Member? = if (host.id == id) host else viewers[id]
@@ -103,14 +107,14 @@ class RoomManager(
     private val rooms = HashMap<String, Room>()
     private val membersByToken = HashMap<String, Member>()
 
-    suspend fun join(link: PeerLink, hello: Hello): Member? = mutex.withLock {
+    suspend fun join(link: PeerLink, hello: Hello, address: String? = null): Member? = mutex.withLock {
         expireDetached()
         if (hello.protocolVersion != PROTOCOL_VERSION) return@withLock refuse(link, ErrorCode.UNSUPPORTED_VERSION)
         if (hello.resumeToken != null) return@withLock resume(link, hello.role, hello.resumeToken)
         val deviceName = hello.deviceName.trim().take(MAX_DEVICE_NAME_LENGTH)
         when (hello.role) {
             PeerRole.HOST -> joinAsHost(link, hello, deviceName)
-            PeerRole.VIEWER -> joinAsViewer(link, hello, deviceName)
+            PeerRole.VIEWER -> joinAsViewer(link, hello, deviceName, address)
         }
     }
 
@@ -152,14 +156,20 @@ class RoomManager(
         return host
     }
 
-    private fun joinAsViewer(link: PeerLink, hello: Hello, deviceName: String): Member? {
+    private fun joinAsViewer(link: PeerLink, hello: Hello, deviceName: String, address: String?): Member? {
         val code = if (config.singleRoom) SINGLE_ROOM_CODE else hello.roomCode?.trim()?.uppercase()
         val room = code?.let(rooms::get) ?: return refuse(link, ErrorCode.ROOM_NOT_FOUND)
         val now = clockMillis()
         room.wrongPinTimes.removeAll { now - it >= PIN_WINDOW_MILLIS }
-        if (room.wrongPinTimes.size >= config.maxWrongPinsPerMinute) return refuse(link, ErrorCode.TOO_MANY_ATTEMPTS)
+        room.wrongPinAddresses.values.removeAll { now - it >= PIN_WINDOW_MILLIS }
+        // Only addresses that guessed wrong wait out the lock, so someone guessing cannot keep the others out.
+        val guessed = address in room.wrongPinAddresses || room.wrongPinAddresses.size >= MAX_GUESSING_ADDRESSES
+        if (room.wrongPinTimes.size >= config.maxWrongPinsPerMinute && guessed) {
+            return refuse(link, ErrorCode.TOO_MANY_ATTEMPTS)
+        }
         if (room.pin != null && room.pin != hello.pin) {
             room.wrongPinTimes.addLast(now)
+            room.wrongPinAddresses[address] = now
             return refuse(link, ErrorCode.INVALID_PIN)
         }
         if (room.viewers.size >= config.maxViewersPerRoom) return refuse(link, ErrorCode.ROOM_FULL)
@@ -273,6 +283,7 @@ class RoomManager(
         const val SINGLE_ROOM_CODE = "LAN"
         private const val MAX_DEVICE_NAME_LENGTH = 40
         private const val PIN_WINDOW_MILLIS = 60_000L
+        private const val MAX_GUESSING_ADDRESSES = 256
         private val EXPIRY_INTERVAL = 5.seconds
     }
 }
