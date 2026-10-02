@@ -28,6 +28,8 @@ kotlin {
             implementation(project(":shared"))
             implementation(project(":lan"))
             implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.jna.platform)
         }
     }
 }
@@ -59,6 +61,21 @@ compose.desktop {
                 packageVersion = "1.0.0"
                 dmgPackageVersion = "1.0.0"
                 pkgPackageVersion = "1.0.0"
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>CFBundleURLTypes</key>
+                        <array>
+                            <dict>
+                                <key>CFBundleURLName</key>
+                                <string>com.mertbek.sharescreen</string>
+                                <key>CFBundleURLSchemes</key>
+                                <array>
+                                    <string>sharescreen</string>
+                                </array>
+                            </dict>
+                        </array>
+                    """.trimIndent()
+                }
             }
             linux {
                 iconFile.set(project.file("icons/icon.png"))
