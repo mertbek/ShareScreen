@@ -41,6 +41,8 @@ class AndroidUi(
 
     override val canScanQr: Boolean get() = true
 
+    override val hasSystemBack: Boolean get() = true
+
     override val audioNeedsPermission: Boolean get() = true
 
     @Composable

@@ -31,6 +31,9 @@ interface PlatformUi {
 
     val canOverlayVideo: Boolean get() = true
 
+    /** A back button or gesture outside the app, so a screen can hide its own way back. */
+    val hasSystemBack: Boolean get() = false
+
     val audioNeedsPermission: Boolean get() = false
 
     fun scanQr(onResult: (QrScan) -> Unit) = Unit

@@ -166,7 +166,9 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
         }
     }
 
-    val overlay = services.ui.canOverlayVideo
+    // While controlling, clicks on the picture go to the other device and cannot bring the controls back,
+    // so without a system back button they stay above the picture.
+    val overlay = services.ui.canOverlayVideo && (services.ui.hasSystemBack || !controlling)
     val message = when {
         !watching -> null
         reconnecting -> Res.string.viewer_reconnecting
@@ -266,7 +268,7 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
                         ?.let { session.type(ControlMessage.Type(text = it.take(MAX_PASTE_LENGTH))) }
                 },
                 onToggleZoomMode = { zoomMode = !zoomMode },
-                onShowDetails = { controlsVisible = true },
+                onShowDetails = if (overlay) ({ controlsVisible = true }) else null,
                 onRelease = session::releaseControl,
             )
         }
@@ -435,7 +437,7 @@ private fun ControlBar(
     onToggleKeyboard: () -> Unit,
     onPaste: () -> Unit,
     onToggleZoomMode: () -> Unit,
-    onShowDetails: () -> Unit,
+    onShowDetails: (() -> Unit)?,
     onRelease: () -> Unit,
 ) {
     Row(
@@ -447,7 +449,7 @@ private fun ControlBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BarButton(Icons.Outlined.Info, stringResource(Res.string.viewer_show_details), onClick = onShowDetails)
+        if (onShowDetails != null) BarButton(Icons.Outlined.Info, stringResource(Res.string.viewer_show_details), onClick = onShowDetails)
         BarButton(Icons.AutoMirrored.Filled.ArrowLeft, stringResource(Res.string.viewer_nav_back)) { onNavigate(NavAction.BACK) }
         BarButton(Icons.Outlined.Circle, stringResource(Res.string.viewer_nav_home)) { onNavigate(NavAction.HOME) }
         BarButton(Icons.Outlined.CropSquare, stringResource(Res.string.viewer_nav_recents)) { onNavigate(NavAction.RECENTS) }
