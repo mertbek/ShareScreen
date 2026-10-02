@@ -66,17 +66,26 @@ class ConnectLinkTest {
     }
 
     @Test
-    fun `internet invites round-trip as web addresses with everything after the hash`() {
+    fun `internet invites open the web app with everything after the hash`() {
         val link = ConnectLink.Internet("wss://share.example.com", "ABC234", "123456", "Ayşe's phone")
-        val web = link.toWebUri()!!
+        val web = link.toWebUri("https://app.example.org/ShareScreen/")!!
 
-        assertTrue(web.startsWith("https://share.example.com/join#r=ABC234&p=123456&n="), web)
+        assertTrue(web.startsWith("https://app.example.org/ShareScreen/#s=share.example.com&r=ABC234&p=123456&n="), web)
         assertFalse(web.substringBefore('#').contains("123456"))
         assertEquals(link, ConnectLink.parse(web))
     }
 
     @Test
-    fun `web invites keep a custom port and match the room code case-insensitively`() {
+    fun `web app invites keep a custom server port and replace an existing hash`() {
+        val link = ConnectLink.Internet("wss://share.example.com:8443", "ABC234", "123456")
+        val web = link.toWebUri("https://app.example.org/#old")!!
+
+        assertEquals("https://app.example.org/#s=share.example.com%3A8443&r=ABC234&p=123456", web)
+        assertEquals(link, ConnectLink.parse(web))
+    }
+
+    @Test
+    fun `invites on the server address from earlier versions still open`() {
         assertEquals(
             ConnectLink.Internet("wss://share.example.com:8443", "ABC234", "123456"),
             ConnectLink.parse("https://share.example.com:8443/join#r=abc234&p=123456"),
@@ -85,7 +94,7 @@ class ConnectLinkTest {
 
     @Test
     fun `only servers reached over TLS have web invites`() {
-        assertNull(ConnectLink.Internet("ws://10.0.2.2:8080", "ABC234", "123456").toWebUri())
+        assertNull(ConnectLink.Internet("ws://10.0.2.2:8080", "ABC234", "123456").toWebUri("https://app.example.org/"))
     }
 
     @Test
@@ -97,6 +106,10 @@ class ConnectLinkTest {
             "https://share.example.com/join#r=ABC234",
             "https://share.example.com/join#r=ABC&p=123456",
             "https://share.example.com/join?r=ABC234&p=123456",
+            "https://app.example.org/#r=ABC234&p=123456",
+            "https://app.example.org/#s=ws%3A%2F%2Fevil.example.com&r=ABC234&p=123456",
+            "https://app.example.org/#s=&r=ABC234&p=123456",
+            "http://app.example.org/#s=share.example.com&r=ABC234&p=123456",
         )
         for (value in invalid) assertNull(ConnectLink.parse(value), value)
     }

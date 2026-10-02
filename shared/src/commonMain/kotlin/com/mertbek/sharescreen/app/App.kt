@@ -21,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import com.mertbek.sharescreen.link.ConnectLink
+import com.mertbek.sharescreen.link.ServerAddress
 import com.mertbek.sharescreen.resources.Res
 import com.mertbek.sharescreen.resources.action_cancel
 import com.mertbek.sharescreen.resources.discover_connect
@@ -46,7 +47,7 @@ fun App(
         val stack = rememberSaveable(saver = BackStackSaver) { mutableStateListOf<Screen>(Screen.Home) }
         val current = stack.last()
         var unconfirmedLink by remember { mutableStateOf<ConnectLink?>(null) }
-        val defaultServer = services.settings.settings.value.defaultServer
+        val defaultServer = services.settings.settings.value.defaultServer?.let(ServerAddress::normalize)
         LaunchedEffect(incomingLink) {
             if (incomingLink == null) return@LaunchedEffect
             if (incomingLink is ConnectLink.Internet && incomingLink.server == defaultServer) {

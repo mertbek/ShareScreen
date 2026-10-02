@@ -24,6 +24,7 @@ class AppServices(
     val lanAdvertiser: LanAdvertiser? = null,
     val lanBrowser: LanBrowser? = null,
     val inputInjector: InputInjector? = null,
+    val webApp: String? = null,
     val versionName: String = "dev",
 ) {
     private val signalingClient = SignalingClient()

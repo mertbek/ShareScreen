@@ -3,6 +3,9 @@ package com.mertbek.sharescreen.web
 @JsFun("() => window.location.href")
 internal external fun pageUrl(): String
 
+@JsFun("() => window.location.origin + window.location.pathname")
+internal external fun pageAddress(): String
+
 @JsFun("() => { history.replaceState(null, '', window.location.pathname); }")
 internal external fun clearPageFragment()
 

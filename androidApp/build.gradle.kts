@@ -18,6 +18,7 @@ val hasReleaseKey = releaseKeyProperties.containsKey("storeFile")
 apply(from = rootProject.file("gradle/server-config.gradle.kts"))
 
 val defaultServer = extra["sharescreenServer"] as String?
+val webApp = extra["sharescreenWebApp"] as String?
 val defaultServerHost = defaultServer?.let { runCatching { URI(it).host }.getOrNull() } ?: "server.invalid"
 
 val abis = providers.gradleProperty("abis").orNull?.split(",") ?: listOf("arm64-v8a", "armeabi-v7a", "x86_64")
@@ -35,6 +36,7 @@ android {
         providers.gradleProperty("appIdSuffix").orNull?.let { applicationIdSuffix = it }
         manifestPlaceholders["defaultServerHost"] = defaultServerHost
         buildConfigField("String", "DEFAULT_SERVER", "\"${defaultServer.orEmpty()}\"")
+        buildConfigField("String", "WEB_APP", "\"${webApp.orEmpty()}\"")
         ndk {
             abiFilters += abis
         }

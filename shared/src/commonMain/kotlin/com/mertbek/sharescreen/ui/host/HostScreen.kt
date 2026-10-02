@@ -358,7 +358,7 @@ private fun NearbyDetails(state: HostState.Live) {
     if (primaryAddress == null) {
         Text(text = stringResource(Res.string.host_no_network), color = MaterialTheme.colorScheme.error)
     } else {
-        LinkQrCode(ConnectLink.Lan(primaryAddress, state.port, state.pin, state.deviceName))
+        LinkQrCode(ConnectLink.Lan(primaryAddress, state.port, state.pin, state.deviceName).toUri())
     }
     state.addresses.forEach { address ->
         CodeChip(stringResource(Res.string.host_address_label), "$address:${state.port}", AddressTextStyle)
@@ -380,7 +380,8 @@ private fun InternetDetails(services: AppServices, room: InternetRoom, pin: Stri
         )
         is InternetRoom.Open -> {
             val invite = ConnectLink.Internet(room.server, room.roomCode, pin, deviceName)
-            LinkQrCode(invite)
+            val webLink = services.webApp?.let(invite::toWebUri)
+            LinkQrCode(webLink ?: invite.toUri())
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 CodeChip(
                     label = stringResource(Res.string.host_room_code_label),
@@ -393,21 +394,21 @@ private fun InternetDetails(services: AppServices, room: InternetRoom, pin: Stri
                     modifier = Modifier.weight(1f),
                 )
             }
-            ShareInviteButton(services, invite)
+            if (webLink != null) ShareInviteButton(services, webLink)
             if (room.reconnecting) Busy(stringResource(Res.string.host_internet_reconnecting))
         }
     }
 }
 
 @Composable
-private fun LinkQrCode(link: ConnectLink) {
+private fun LinkQrCode(link: String) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         QrCode(
-            content = (link as? ConnectLink.Internet)?.toWebUri() ?: link.toUri(),
+            content = link,
             contentDescription = stringResource(Res.string.host_qr_description),
             modifier = Modifier.size(QR_SIZE).clip(MaterialTheme.shapes.medium),
         )
@@ -640,8 +641,7 @@ private val PairTextStyle = CodeTextStyle.copy(fontSize = 22.sp, letterSpacing =
 private val AddressTextStyle = CodeTextStyle.copy(fontSize = 20.sp, letterSpacing = 0.5.sp)
 
 @Composable
-private fun ShareInviteButton(services: AppServices, invite: ConnectLink.Internet) {
-    val link = invite.toWebUri() ?: return
+private fun ShareInviteButton(services: AppServices, link: String) {
     val message = stringResource(Res.string.host_invite_message, link)
     OutlinedButton(
         onClick = { services.ui.share(message) },

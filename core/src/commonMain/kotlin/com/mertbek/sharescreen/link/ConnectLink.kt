@@ -37,11 +37,12 @@ sealed interface ConnectLink {
 
         override fun toUri(): String = uri(INTERNET_AUTHORITY, "s" to server, "r" to roomCode, "pin" to pin, "n" to name)
 
-        fun toWebUri(): String? {
-            val uri = parseUri(server)?.takeIf { it.scheme == "wss" } ?: return null
-            return "https://${uri.rawAuthority}$WEB_PATH#" + listOf("r" to roomCode, "p" to pin, "n" to name)
-                .filter { it.second != null }
-                .joinToString("&") { (key, value) -> "$key=${encodeComponent(value.orEmpty())}" }
+        fun toWebUri(webApp: String): String? {
+            if (parseUri(server)?.scheme != "wss") return null
+            return webApp.substringBefore('#') + "#" +
+                listOf("s" to server.removePrefix("wss://"), "r" to roomCode, "p" to pin, "n" to name)
+                    .filter { it.second != null }
+                    .joinToString("&") { (key, value) -> "$key=${encodeComponent(value.orEmpty())}" }
         }
     }
 
@@ -74,12 +75,16 @@ sealed interface ConnectLink {
         }
 
         private fun parseWeb(uri: ParsedUri): ConnectLink? {
-            if (uri.path != WEB_PATH || uri.rawAuthority.isNullOrEmpty()) return null
+            if (uri.rawAuthority.isNullOrEmpty()) return null
             val params = parseParameters(uri.rawFragment)
             val roomCode = params["r"]?.uppercase()?.takeIf(::isValidRoomCode) ?: return null
             val pin = params["p"]?.takeIf(::isValidPin) ?: return null
             val name = params["n"]?.trim()?.takeIf { it.isNotEmpty() }
-            val server = ServerAddress.normalize("wss://${uri.rawAuthority}") ?: return null
+            val server = when {
+                "s" in params -> ServerAddress.normalize(params.getValue("s"))
+                uri.path == WEB_PATH -> ServerAddress.normalize("wss://${uri.rawAuthority}")
+                else -> null
+            } ?: return null
             return Internet(server, roomCode, pin, name)
         }
 

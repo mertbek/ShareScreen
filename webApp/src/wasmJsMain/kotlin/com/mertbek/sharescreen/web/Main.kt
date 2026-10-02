@@ -35,6 +35,7 @@ private fun createServices() = AppServices(
     settings = SettingsRepository(StorageSettings(), ServerConfig.defaultServer),
     ui = WebUi(),
     screenSource = WebScreenSource(),
+    webApp = pageAddress().takeIf { it.startsWith("https://") } ?: ServerConfig.webApp,
     versionName = ServerConfig.versionName,
 )
 
