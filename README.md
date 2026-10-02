@@ -35,9 +35,10 @@ example `wss://signal.example.com`, in one of these places:
 
 Without it, internet sharing stays off until a server is entered in Settings.
 
-Invite links and QR codes for internet sharing open the web app, which joins the room in the
-browser. The apps point them at https://mertbek.github.io/ShareScreen/; give another address as
-`sharescreen.web` in the same places. The web app links to itself.
+Invite links and QR codes for internet sharing open the web app. On Android and desktop the page
+first hands the invite to the installed app through a `sharescreen://` link and joins the room in
+the browser when no app takes it. The apps point invites at https://mertbek.github.io/ShareScreen/;
+give another address as `sharescreen.web` in the same places. The web app links to itself.
 
 ## Android editions
 

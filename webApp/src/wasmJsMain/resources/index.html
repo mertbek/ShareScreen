@@ -28,7 +28,11 @@
             width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--ring);
             border-top-color: #4c6fff; animation: spin 1s linear infinite;
         }
-        #splash p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; padding: 0 24px; }
+        #splash p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; padding: 0 24px; max-width: 420px; }
+        #splash button {
+            font: inherit; font-size: 15px; padding: 10px 22px; border: 0; border-radius: 20px;
+            background: #4c6fff; color: #fff; cursor: pointer;
+        }
         #unsupported { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -36,7 +40,18 @@
         const supportsWasmGc = typeof WebAssembly === "object" &&
             WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
         document.documentElement.lang = (navigator.language || "en").slice(0, 2);
-        addEventListener("DOMContentLoaded", () => {
+        const handoffText = document.documentElement.lang === "tr" ? {
+            opening: "ShareScreen uygulaması açılıyor…",
+            opened: "Davet ShareScreen uygulamasına gönderildi. Uygulama açılmadıysa tarayıcıda devam edebilirsin.",
+            browser: "Tarayıcıda devam et",
+        } : {
+            opening: "Opening the ShareScreen app…",
+            opened: "The invite was sent to the ShareScreen app. If the app did not open, continue in the browser.",
+            browser: "Continue in the browser",
+        };
+        const HANDOFF_MILLIS = 2500;
+
+        function startWebApp() {
             if (supportsWasmGc) {
                 const script = document.createElement("script");
                 script.src = "webApp.js";
@@ -46,6 +61,75 @@
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("unsupported").style.display = "block";
             }
+        }
+
+        // An invite (#s=…&r=…&p=…) first goes to the app on Android and desktop. w=1 marks the way
+        // back to the browser, which Chrome on Android takes by itself when the app is not installed.
+        function appLink() {
+            const invite = new URLSearchParams(location.hash.slice(1));
+            const server = invite.get("s"), room = invite.get("r"), pin = invite.get("p"), name = invite.get("n");
+            if (!server || !room || !pin || invite.has("w")) return null;
+            const agent = navigator.userAgent;
+            const android = /Android/.test(agent);
+            const ios = /iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);
+            if (ios || !(android || /Windows|Macintosh|Linux|CrOS/.test(agent))) return null;
+            const query = new URLSearchParams({ s: server, r: room, pin: pin });
+            if (name) query.set("n", name);
+            if (android) {
+                invite.set("w", "1");
+                const browser = location.href.split("#")[0] + "#" + invite;
+                return {
+                    url: "intent://join?" + query + "#Intent;scheme=sharescreen;S.browser_fallback_url=" +
+                        encodeURIComponent(browser) + ";end",
+                    navigate: true,
+                };
+            }
+            return { url: "sharescreen://join?" + query, navigate: /Chrome\//.test(agent) };
+        }
+
+        // The page loses focus or goes to the background when the app or the browser's prompt for it
+        // opens. Otherwise no app took the link and the invite continues in the browser.
+        function openInApp(link) {
+            document.getElementById("loading").textContent = handoffText.opening;
+            let left = false;
+            const leave = () => { left = true; };
+            const hide = () => { if (document.hidden) leave(); };
+            addEventListener("blur", leave);
+            document.addEventListener("visibilitychange", hide);
+            if (link.navigate) {
+                location.href = link.url;
+            } else {
+                const frame = document.createElement("iframe");
+                frame.hidden = true;
+                frame.src = link.url;
+                document.body.appendChild(frame);
+            }
+            setTimeout(() => {
+                removeEventListener("blur", leave);
+                document.removeEventListener("visibilitychange", hide);
+                if (left) offerBrowser(); else startWebApp();
+            }, HANDOFF_MILLIS);
+        }
+
+        function offerBrowser() {
+            const spinner = document.querySelector("#splash .spinner");
+            const loading = document.getElementById("loading");
+            const button = document.getElementById("browser");
+            spinner.style.display = "none";
+            loading.textContent = handoffText.opened;
+            button.textContent = handoffText.browser;
+            button.hidden = false;
+            button.onclick = () => {
+                button.hidden = true;
+                spinner.style.display = "";
+                loading.textContent = "ShareScreen";
+                startWebApp();
+            };
+        }
+
+        addEventListener("DOMContentLoaded", () => {
+            const link = appLink();
+            if (link) openInApp(link); else startWebApp();
         });
     </script>
 </head>
@@ -54,6 +138,7 @@
         <img src="favicon.svg" alt="">
         <div class="spinner"></div>
         <p id="loading">ShareScreen</p>
+        <button id="browser" type="button" hidden></button>
         <p id="unsupported">This browser is too old for ShareScreen. Use a current version of Chrome, Edge, Firefox or Safari.</p>
     </div>
     <noscript>ShareScreen needs JavaScript.</noscript>

@@ -93,6 +93,15 @@ class ConnectLinkTest {
     }
 
     @Test
+    fun `the links the web page hands to the apps and back to the browser open`() {
+        val link = ConnectLink.Internet("wss://share.example.com", "ABC234", "123456", "Ayşe's phone")
+
+        assertEquals(link, ConnectLink.parse("sharescreen://join?s=share.example.com&r=ABC234&pin=123456&n=Ay%C5%9Fe%27s+phone"))
+        assertEquals(link, ConnectLink.parse("sharescreen://join/?s=share.example.com&r=ABC234&pin=123456&n=Ay%C5%9Fe%27s+phone"))
+        assertEquals(link, ConnectLink.parse("https://app.example.org/#s=share.example.com&r=ABC234&p=123456&n=Ay%C5%9Fe%27s+phone&w=1"))
+    }
+
+    @Test
     fun `only servers reached over TLS have web invites`() {
         assertNull(ConnectLink.Internet("ws://10.0.2.2:8080", "ABC234", "123456").toWebUri("https://app.example.org/"))
     }
