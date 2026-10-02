@@ -64,7 +64,10 @@ first Android app. New control messages are additive and ignored by older peers:
 - `pointer`: mouse move, button, wheel with coordinates normalised to the shared frame
 - `keyboard`: key down and up with a platform independent key code
 
-An Android host maps pointer input to gestures; a desktop host maps touches to mouse input.
+A desktop host maps touches to mouse input. An Android host gets a mouse's buttons as touches and
+turns the wheel into swipes, each held still at its end so the content does not fling on. It takes
+no key presses, so a viewer turns the keys pressed for it into `type` edits, Enter into `key`,
+Escape into going back and Ctrl+V into a paste.
 
 A host on the local network announces `pin=0` or `pin=1` next to the protocol version in its
 mDNS record. Viewers treat a record without it as an older host that wants the PIN, and a viewer

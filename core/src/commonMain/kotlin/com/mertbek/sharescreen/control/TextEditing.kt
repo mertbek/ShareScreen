@@ -28,3 +28,18 @@ object TypingBox {
         return edit to EMPTY + newTyped
     }
 }
+
+/**
+ * The text a key types into a phone's text field, from the character the viewer's keyboard gave it, or null when
+ * it types nothing there: control characters, and shortcuts held with Ctrl or the command key. Ctrl and Alt
+ * together are AltGr on Windows, which types characters such as @.
+ */
+fun typedText(codePoint: Int, ctrl: Boolean, alt: Boolean, meta: Boolean): String? {
+    if (meta || (ctrl && !alt)) return null
+    val printable = codePoint in 0x20..0x10FFFF && codePoint != 0x7F && codePoint !in 0x80..0x9F &&
+        codePoint !in 0xD800..0xDFFF && codePoint !in 0xFFF0..0xFFFF
+    if (!printable) return null
+    if (codePoint < 0x10000) return codePoint.toChar().toString()
+    val offset = codePoint - 0x10000
+    return charArrayOf((0xD800 + (offset shr 10)).toChar(), (0xDC00 + (offset and 0x3FF)).toChar()).concatToString()
+}

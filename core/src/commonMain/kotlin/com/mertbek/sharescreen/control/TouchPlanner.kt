@@ -26,6 +26,9 @@ class TouchPlanner {
     private val abandoned = HashSet<Long>()
     private var inFlight: List<InFlight>? = null
 
+    /** Whether no finger is down or on its way up. */
+    val isIdle: Boolean get() = tracks.isEmpty() && inFlight == null
+
     fun update(time: Long, pointers: List<Pair<Long, ScreenPoint>>) {
         val ids = pointers.mapTo(HashSet()) { it.first }
         abandoned.retainAll(ids)

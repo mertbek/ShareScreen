@@ -53,4 +53,21 @@ class TextEditingTest {
     fun `no edit when nothing changed`() {
         assertNull(TypingBox.edit(TypingBox.EMPTY + "a", TypingBox.EMPTY + "a").first)
     }
+
+    @Test
+    fun `keys type their character and shortcuts type nothing`() {
+        assertEquals("a", typedText('a'.code, ctrl = false, alt = false, meta = false))
+        assertEquals(" ", typedText(' '.code, ctrl = false, alt = false, meta = false))
+        assertEquals("ğ", typedText('ğ'.code, ctrl = false, alt = false, meta = false))
+        assertEquals("@", typedText('@'.code, ctrl = true, alt = true, meta = false))
+        assertEquals("€", typedText('€'.code, ctrl = false, alt = true, meta = false))
+        assertEquals("😀", typedText(0x1F600, ctrl = false, alt = false, meta = false))
+        assertNull(typedText('c'.code, ctrl = true, alt = false, meta = false))
+        assertNull(typedText('v'.code, ctrl = false, alt = false, meta = true))
+        assertNull(typedText(0x03, ctrl = true, alt = false, meta = false))
+        assertNull(typedText('\b'.code, ctrl = false, alt = false, meta = false))
+        assertNull(typedText(0x7F, ctrl = false, alt = false, meta = false))
+        assertNull(typedText(0xFFFF, ctrl = false, alt = false, meta = false))
+        assertNull(typedText(0, ctrl = false, alt = false, meta = false))
+    }
 }

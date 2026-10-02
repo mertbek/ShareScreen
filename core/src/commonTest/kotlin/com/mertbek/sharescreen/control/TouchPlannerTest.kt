@@ -137,4 +137,18 @@ class TouchPlannerTest {
         planner.onBatchFinished(completed = true)
         assertNull(planner.nextBatch())
     }
+
+    @Test
+    fun `idle once the last finger has lifted`() {
+        assertTrue(planner.isIdle)
+        planner.update(0, listOf(1L to p(10f, 20f)))
+        assertTrue(!planner.isIdle)
+        planner.nextBatch()
+        planner.onBatchFinished(completed = true)
+        planner.update(80, emptyList())
+        planner.nextBatch()
+        assertTrue(!planner.isIdle)
+        planner.onBatchFinished(completed = true)
+        assertTrue(planner.isIdle)
+    }
 }

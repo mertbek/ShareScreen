@@ -89,6 +89,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.isTertiaryPressed
 import androidx.compose.ui.unit.IntSize
@@ -117,6 +118,7 @@ import com.mertbek.sharescreen.control.ControlRole
 import com.mertbek.sharescreen.control.NavAction
 import com.mertbek.sharescreen.control.TouchPointer
 import com.mertbek.sharescreen.control.TypingBox
+import com.mertbek.sharescreen.control.typedText
 import com.mertbek.sharescreen.ui.components.IconBadge
 import kotlinx.coroutines.delay
 
@@ -176,6 +178,10 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
         notice == ControlNotice.ENDED -> Res.string.viewer_control_ended
         else -> null
     }
+    val paste: () -> Unit = {
+        services.ui.clipboardText()?.takeIf { it.isNotEmpty() }
+            ?.let { session.type(ControlMessage.Type(text = it.take(MAX_PASTE_LENGTH))) }
+    }
     val topControls = @Composable {
         TopControls(
             title = link.name ?: link.address,
@@ -209,6 +215,7 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
                             zoom = zoom,
                             videoSize = videoSize,
                             session = session,
+                            onPaste = paste,
                             modifier = Modifier.matchParentSize(),
                         )
                     } else {
@@ -262,10 +269,7 @@ fun ViewerScreen(services: AppServices, link: ConnectLink, onBack: () -> Unit) {
                 zoomMode = zoomMode,
                 onNavigate = session::navigate,
                 onToggleKeyboard = { keyboardOpen = !keyboardOpen },
-                onPaste = {
-                    services.ui.clipboardText()?.takeIf { it.isNotEmpty() }
-                        ?.let { session.type(ControlMessage.Type(text = it.take(MAX_PASTE_LENGTH))) }
-                },
+                onPaste = paste,
                 onToggleZoomMode = { zoomMode = !zoomMode },
                 onRelease = session::releaseControl,
             )
@@ -325,17 +329,21 @@ private fun InputSurface(
     zoom: Zoom,
     videoSize: IntSize,
     session: ViewerSession,
+    onPaste: () -> Unit,
     modifier: Modifier,
 ) {
     val currentZoom by rememberUpdatedState(zoom)
     val currentVideo by rememberUpdatedState(videoSize)
+    val currentOnPaste by rememberUpdatedState(onPaste)
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
     Box(
         modifier
             .focusRequester(focusRequester)
             .focusable()
-            .onPreviewKeyEvent { event -> forwardKey(session, event) }
+            .onPreviewKeyEvent { event ->
+                if (platform == HostPlatform.DESKTOP) forwardKey(session, event) else typeOnPhone(session, event, currentOnPaste)
+            }
             .pointerInput(platform) {
                 awaitPointerEventScope {
                     var sent = emptyList<TouchPointer>()
@@ -343,6 +351,10 @@ private fun InputSurface(
                     while (true) {
                         val event = awaitPointerEvent()
                         val fit = fitVideo(size.width.toFloat(), size.height.toFloat(), currentVideo.width, currentVideo.height)
+                        // A click on the picture takes the keys back, say from the keyboard bar, so typing goes on there.
+                        if (event.type == PointerEventType.Press && event.changes.any { it.type == PointerType.Mouse }) {
+                            focusRequester.requestFocus()
+                        }
                         if (platform == HostPlatform.DESKTOP) {
                             if (event.type == PointerEventType.Press) {
                                 activeButton = when {
@@ -352,6 +364,11 @@ private fun InputSurface(
                                 }
                             }
                             forwardPointer(session, event, fit, currentZoom, activeButton)
+                        } else if (event.type == PointerEventType.Scroll) {
+                            // The phone turns the wheel into a swipe.
+                            val change = event.changes.first()
+                            val (x, y) = mapToPicture(fit, currentZoom, change.position.x, change.position.y)
+                            session.pointer(ControlMessage.Pointer(PointerAction.SCROLL, x, y, scrollX = change.scrollDelta.x, scrollY = change.scrollDelta.y))
                         } else {
                             val pointers = event.changes.filter { it.pressed }.take(MAX_POINTERS).map {
                                 val (x, y) = mapToPicture(fit, currentZoom, it.position.x, it.position.y)
@@ -394,6 +411,30 @@ private fun forwardKey(session: ViewerSession, event: KeyEvent): Boolean {
             meta = event.isMetaPressed,
         )
     )
+    return true
+}
+
+/**
+ * Keys pressed for a phone go into its text field as its own keyboard would put them there, as a phone takes no
+ * key presses from outside. Escape goes back, as it does with a keyboard plugged into a phone.
+ */
+private fun typeOnPhone(session: ViewerSession, event: KeyEvent, onPaste: () -> Unit): Boolean {
+    if (event.isTypedCharacter) {
+        typedText(event.utf16CodePoint, event.isCtrlPressed, event.isAltPressed, event.isMetaPressed)?.let {
+            session.type(ControlMessage.Type(text = it))
+            return true
+        }
+    }
+    if (event.type != KeyEventType.KeyDown) return false
+    when {
+        event.key == Key.Backspace -> session.type(ControlMessage.Type(deleteBefore = 1))
+        event.key == Key.Enter || event.key == Key.NumPadEnter -> session.press(ControlKey.ENTER)
+        event.key == Key.Escape -> session.navigate(NavAction.BACK)
+        event.key == Key.V && (event.isCtrlPressed || event.isMetaPressed) -> onPaste()
+        // Kept here, or it would move the keys away from the picture.
+        event.key == Key.Tab -> Unit
+        else -> return false
+    }
     return true
 }
 
