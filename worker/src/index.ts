@@ -1,3 +1,4 @@
+import { redirectToApk } from "./download";
 import type { Env } from "./signaling";
 
 export { Signaling } from "./signaling";
@@ -33,6 +34,10 @@ export default {
         return env.SIGNALING.get(env.SIGNALING.idFromName("rooms")).fetch(request);
       case "/.well-known/assetlinks.json":
         return Response.json(ASSET_LINKS, { headers: { "Cache-Control": "public, max-age=3600" } });
+      case "/ShareScreen.apk":
+        return redirectToApk(false);
+      case "/ShareScreen-lite.apk":
+        return redirectToApk(true);
       default:
         return env.ASSETS.fetch(request);
     }

@@ -2,7 +2,10 @@
 
 The internet side of ShareScreen. It introduces devices to each other (rooms, PINs, the WebRTC
 handshake); picture and sound never pass through it. It also serves the pages people land on: the
-invite page (`/join`), the download page, the privacy policy and the Android App Links file.
+invite page (`/join`), the download page, the privacy policy and the Android App Links file. The
+APKs are not served from here (a Worker asset may not exceed 25 MiB, an APK is bigger):
+`/ShareScreen.apk` and `/ShareScreen-lite.apk` send the visitor to the files of the newest GitHub
+release, so a new release reaches the download page without a deploy.
 
 It runs on Cloudflare's free plan, no card needed: a Worker plus one Durable Object that holds all
 rooms (WebSocket hibernation, so an idle room costs nothing). The protocol is the one in
@@ -35,13 +38,10 @@ because it waits for the object to be evicted from memory.
 
 ```powershell
 npx wrangler login     # once
-gh auth login          # once, for the release files
 .\worker\scripts\deploy.ps1
 ```
 
-The script copies the APKs of the latest release into `public/` (the full edition as
-`ShareScreen.apk`, the lite one as `ShareScreen-lite.apk`; they are not kept in git), runs the
-tests and calls `wrangler deploy`. The address of the server shows at the end. Give it to the
+The script runs the type check and the tests and calls `wrangler deploy`. The address of the server shows at the end. Give it to the
 apps as `sharescreen.server=wss://<that address>`, see the main README.
 
 ## TURN (optional)

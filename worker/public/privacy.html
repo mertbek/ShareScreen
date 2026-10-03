@@ -21,6 +21,7 @@
     <li><strong>Picture, sound and control input</strong> go directly from the sharing device to the viewer (WebRTC, encrypted with DTLS-SRTP). On rare networks where a direct connection is impossible, an encrypted relay (TURN, run by Cloudflare) forwards the encrypted packets; it cannot read them.</li>
     <li><strong>Connection setup</strong> goes through a small signaling server (Cloudflare Workers): a random room code, the PIN you show, the device names, and the technical messages devices exchange to connect. Rooms are kept only while a session lasts (plus up to 30 seconds after a dropped connection) and are deleted when it ends. We do not store them permanently and never see your screen. To slow down people who guess a PIN, a room also remembers a short one-way fingerprint of the address of each device that gave a wrong PIN or asked to join, never the address itself, and it goes with the room.</li>
     <li><strong>On the same Wi-Fi</strong> devices connect to each other directly and no server is involved.</li>
+    <li><strong>Downloading the app</strong> from our download page sends you on to GitHub, which serves the file and sees the address of the device that downloads it.</li>
   </ul>
 
   <h2>Data we do not collect</h2>
@@ -58,6 +59,7 @@
     <li><strong>Görüntü, ses ve kontrol girdileri</strong> paylaşan cihazdan izleyiciye doğrudan gider (WebRTC, DTLS-SRTP ile şifreli). Doğrudan bağlantının mümkün olmadığı nadir ağlarda, şifreli paketleri Cloudflare'in işlettiği şifreli bir aktarıcı (TURN) iletir; içeriği okuyamaz.</li>
     <li><strong>Bağlantı kurulumu</strong> küçük bir sinyal sunucusundan (Cloudflare Workers) geçer: rastgele bir oda kodu, gösterdiğin PIN, cihaz adları ve cihazların bağlanmak için değiştiği teknik mesajlar. Odalar yalnızca oturum sürdüğü sürece (bağlantı kopunca en çok 30 saniye daha) tutulur ve oturum bitince silinir. Kalıcı saklamayız ve ekranını hiç görmeyiz. PIN tahmin edenleri yavaşlatmak için oda, yanlış PIN veren ya da katılmak isteyen her cihazın adresinin kısa ve tek yönlü bir parmak izini (adresin kendisini asla) hatırlar ve bu odayla birlikte silinir.</li>
     <li><strong>Aynı Wi-Fi'da</strong> cihazlar birbirine doğrudan bağlanır, hiçbir sunucu araya girmez.</li>
+    <li><strong>Uygulamayı indirmek</strong> seni indirme sayfamızdan GitHub'a yönlendirir; dosyayı GitHub sunar ve indiren cihazın adresini görür.</li>
   </ul>
 
   <h2>Toplamadığımız veriler</h2>
