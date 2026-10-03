@@ -5,7 +5,9 @@ handshake); picture and sound never pass through it. It also serves the pages pe
 invite page (`/join`), the download page, the privacy policy and the Android App Links file. The
 APKs are not served from here (a Worker asset may not exceed 25 MiB, an APK is bigger):
 `/ShareScreen.apk` and `/ShareScreen-lite.apk` send the visitor to the files of the newest GitHub
-release, so a new release reaches the download page without a deploy.
+release, so a new release reaches the download page without a deploy. The tag comes from the
+redirect of `releases/latest` (the GitHub API would limit a shared Cloudflare address) and the file
+name is the one the release workflow gives, `ShareScreen-<tag>.apk` and `ShareScreen-<tag>-lite.apk`.
 
 It runs on Cloudflare's free plan, no card needed: a Worker plus one Durable Object that holds all
 rooms (WebSocket hibernation, so an idle room costs nothing). The protocol is the one in

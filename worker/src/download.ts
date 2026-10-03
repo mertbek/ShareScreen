@@ -1,5 +1,4 @@
 const REPOSITORY = "mertbek/ShareScreen";
-const LATEST_RELEASE = `https://api.github.com/repos/${REPOSITORY}/releases/latest`;
 const DOWNLOADS = `https://github.com/${REPOSITORY}/releases/download/`;
 
 /** Where people land when the newest release cannot be looked up. */
@@ -7,40 +6,32 @@ export const RELEASES_PAGE = `https://github.com/${REPOSITORY}/releases/latest`;
 
 const CACHE_MILLIS = 10 * 60_000;
 
-let cached: { release: unknown; at: number } | undefined;
+let cached: { tag: string; at: number } | undefined;
 
-/**
- * The address of the full or the lite APK in a GitHub release, or null. Only files of this
- * repository's releases qualify, so a reply that was tampered with cannot send anyone elsewhere.
- */
-export function apkUrl(release: unknown, lite: boolean): string | null {
-  const assets = (release as { assets?: unknown } | null)?.assets;
-  if (!Array.isArray(assets)) return null;
-  for (const asset of assets) {
-    const { name, browser_download_url: url } = (asset ?? {}) as { name?: unknown; browser_download_url?: unknown };
-    if (typeof name !== "string" || typeof url !== "string") continue;
-    if (name.endsWith(".apk") && name.endsWith("-lite.apk") === lite && url.startsWith(DOWNLOADS)) return url;
-  }
-  return null;
+/** The tag a `releases/latest` redirect points at, for example `v0.2.0`, or null. */
+export function tagFrom(location: string | null): string | null {
+  const tag = location?.match(/\/releases\/tag\/([^/?#]+)$/)?.[1];
+  return tag && /^v\d+(\.\d+)*$/.test(tag) ? tag : null;
 }
 
-async function latestRelease(): Promise<unknown> {
-  if (cached && Date.now() - cached.at < CACHE_MILLIS) return cached.release;
+/** The APK of a release as the release workflow names it: ShareScreen-v1.2.3.apk and ShareScreen-v1.2.3-lite.apk. */
+export function apkUrl(tag: string | null, lite: boolean): string | null {
+  return tag ? `${DOWNLOADS}${tag}/ShareScreen-${tag}${lite ? "-lite" : ""}.apk` : null;
+}
+
+async function latestTag(): Promise<string | null> {
+  if (cached && Date.now() - cached.at < CACHE_MILLIS) return cached.tag;
   try {
-    const response = await fetch(LATEST_RELEASE, {
-      headers: { Accept: "application/vnd.github+json", "User-Agent": "sharescreen-worker" },
-    });
-    if (response.ok) {
-      cached = { release: await response.json(), at: Date.now() };
-    }
+    const response = await fetch(RELEASES_PAGE, { redirect: "manual" });
+    const tag = tagFrom(response.headers.get("Location"));
+    if (tag) cached = { tag, at: Date.now() };
   } catch {
     // Fall back to the last answer, if any.
   }
-  return cached?.release;
+  return cached?.tag ?? null;
 }
 
 /** Sends the visitor to the APK of the newest release, or to the release page when there is none. */
 export async function redirectToApk(lite: boolean): Promise<Response> {
-  const url = apkUrl(await latestRelease(), lite);
-  return Response.redirect(url ?? RELEASES_PAGE, 302);
+  return Response.redirect(apkUrl(await latestTag(), lite) ?? RELEASES_PAGE, 302);
 }
