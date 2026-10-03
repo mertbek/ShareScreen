@@ -444,6 +444,38 @@ class SessionTest {
         approvalAcrossDrop { relay -> relay.swallowing = true }
     }
 
+    @Test
+    fun `a host notices an internet connection that went silent and reconnects`() = runBlocking {
+        val server = embeddedServer(ServerCIO, port = 0, host = "127.0.0.1") { signalingModule(RoomManager(SignalingConfig())) }
+        server.startSuspend(wait = false)
+        val relay = Relay(server.engine.resolvedConnectors().first().port)
+        val host = HostSession(FakeRtcEngine(), SignalingClient(HttpClient(CIO) { install(WebSockets) { pingIntervalMillis = 300 } }), DeviceName("Host"))
+        try {
+            host.start(FakeMedia(), internetServer = "ws://127.0.0.1:${relay.port}", allowControl = false)
+            eventually { (host.state.value as? HostState.Live)?.internetRoom as? InternetRoom.Open }
+
+            relay.swallowing = true
+
+            withTimeout(20.seconds) {
+                while (((host.state.value as HostState.Live).internetRoom as? InternetRoom.Open)?.reconnecting != true) {
+                    kotlinx.coroutines.delay(50)
+                }
+            }
+
+            relay.swallowing = false
+
+            withTimeout(30.seconds) {
+                while (((host.state.value as HostState.Live).internetRoom as? InternetRoom.Open)?.reconnecting != false) {
+                    kotlinx.coroutines.delay(50)
+                }
+            }
+        } finally {
+            host.stop().join()
+            relay.close()
+            server.stop(100, 500)
+        }
+    }
+
     private suspend fun approvalAcrossDrop(drop: (Relay) -> Unit) {
         val server = embeddedServer(ServerCIO, port = 0, host = "127.0.0.1") { signalingModule(RoomManager(SignalingConfig())) }
         server.startSuspend(wait = false)

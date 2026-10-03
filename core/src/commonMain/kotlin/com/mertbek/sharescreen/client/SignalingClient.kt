@@ -20,8 +20,16 @@ import kotlin.time.Duration.Companion.seconds
 
 fun lanSignalingUrl(host: String, port: Int): String = "ws://$host:$port$SIGNALING_PATH"
 
-fun defaultHttpClient(): HttpClient = HttpClient {
-    install(WebSockets)
+/**
+ * How often a connection is pinged, so one that went silent without closing, say behind a router that
+ * forgot it, is noticed and replaced. Browsers answer pings but cannot send them, so the web leaves it off.
+ */
+internal expect val keepAliveMillis: Long
+
+fun defaultHttpClient(pingIntervalMillis: Long = keepAliveMillis): HttpClient = HttpClient {
+    install(WebSockets) {
+        this.pingIntervalMillis = pingIntervalMillis
+    }
 }
 
 class SignalingClient(private val httpClient: HttpClient = defaultHttpClient()) {
