@@ -26,6 +26,7 @@ plain `ws://` connections to a LAN address.
 | `core` | android, jvm, wasmJs | links, control protocol, RTC and platform interfaces, signaling client, host and viewer sessions, settings |
 | `shared` | android, desktop (jvm), wasmJs | Compose UI and the RTC engine, screen source and video view of each platform |
 | `server` | jvm | signaling route, embedded LAN server |
+| `worker` | TypeScript | the signaling server for Cloudflare Workers, a port of the room manager, plus the invite, download and privacy pages |
 | `lan` | jvm | LAN server adapter, mDNS discovery |
 | `androidApp` | android | activity, foreground service, accessibility service, NSD, `full` and `lite` editions |
 | `desktopApp` | jvm | window, wiring |
@@ -58,8 +59,8 @@ and its last release (WebRTC M125) is a year old.
 ## Compatibility
 
 The signaling protocol (v1, with resume tokens) and the JSON control channel keep their wire
-format, so the new apps talk to the existing worker, to the embedded LAN server and to the
-first Android app. New control messages are additive and ignored by older peers:
+format, so the apps talk to the worker, to the embedded LAN server and to the first Android
+app. New control messages are additive and ignored by older peers:
 
 - `pointer`: mouse move, button, wheel with coordinates normalised to the shared frame
 - `keyboard`: key down and up with a platform independent key code
