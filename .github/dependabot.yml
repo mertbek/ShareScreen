@@ -34,3 +34,11 @@ updates:
       actions:
         patterns:
           - "*"
+  - package-ecosystem: npm
+    directory: /worker
+    schedule:
+      interval: weekly
+    groups:
+      worker:
+        patterns:
+          - "*"
