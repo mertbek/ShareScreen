@@ -24,6 +24,14 @@ class SignalCodecTest {
     }
 
     @Test
+    fun `a ping and its answer are the exact text the server replies to by itself`() {
+        assertEquals("""{"type":"ping"}""", SignalCodec.encode(SignalMessage.Ping))
+        assertEquals("""{"type":"pong"}""", SignalCodec.encode(SignalMessage.Pong))
+        assertEquals(SignalMessage.Ping, SignalCodec.decode("""{"type":"ping"}"""))
+        assertEquals(SignalMessage.Pong, SignalCodec.decode("""{"type":"pong"}"""))
+    }
+
+    @Test
     fun `protocol version is always encoded`() {
         assertTrue(SignalCodec.encode(Hello(PeerRole.HOST, "Host")).contains("\"protocolVersion\":$PROTOCOL_VERSION"))
     }

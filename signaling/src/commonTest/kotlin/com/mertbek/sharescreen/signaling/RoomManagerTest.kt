@@ -69,6 +69,16 @@ class RoomManagerTest {
     }
 
     @Test
+    fun `a ping is answered to the sender alone`() = runTest {
+        val (manager, room) = roomWithViewer()
+
+        manager.handle(room.host, SignalMessage.Ping)
+
+        assertEquals(messages(SignalMessage.Pong), room.hostLink.takeAll())
+        assertEquals(messages(), room.viewerLink.takeAll())
+    }
+
+    @Test
     fun `host without the secret is refused`() = runTest {
         val link = FakeLink()
         assertNull(lanManager().join(link, hostHello(secret = "wrong")))

@@ -153,7 +153,9 @@ export class RoomManager {
   handle(sender: Member, message: Message): void {
     const room = this.rooms.get(sender.roomCode);
     if (!room || room.host !== sender && room.viewers.get(sender.id) !== sender) return;
-    if (message.type === "leave") {
+    if (message.type === "ping") {
+      this.deliver(sender, { type: "pong" });
+    } else if (message.type === "leave") {
       this.remove(room, sender);
     } else if (message.type === "join_decision" && sender.role === "host") {
       this.decide(room, message.viewerId, message.accepted);

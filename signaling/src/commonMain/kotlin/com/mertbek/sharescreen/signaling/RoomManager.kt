@@ -7,6 +7,8 @@ import com.mertbek.sharescreen.signaling.SignalMessage.JoinRequest
 import com.mertbek.sharescreen.signaling.SignalMessage.Kick
 import com.mertbek.sharescreen.signaling.SignalMessage.Leave
 import com.mertbek.sharescreen.signaling.SignalMessage.PeerLeft
+import com.mertbek.sharescreen.signaling.SignalMessage.Ping
+import com.mertbek.sharescreen.signaling.SignalMessage.Pong
 import com.mertbek.sharescreen.signaling.SignalMessage.SessionEnded
 import com.mertbek.sharescreen.signaling.SignalMessage.Welcome
 import kotlinx.coroutines.delay
@@ -131,6 +133,7 @@ class RoomManager(
     suspend fun handle(sender: Member, message: SignalMessage): Unit = mutex.withLock {
         val room = rooms[sender.roomCode]?.takeIf { it.member(sender.id) === sender } ?: return@withLock
         when {
+            message is Ping -> sender.send(Pong)
             message is Leave -> remove(room, sender)
             message is JoinDecision && sender.role == PeerRole.HOST -> decide(room, message)
             message is Kick && sender.role == PeerRole.HOST -> kick(room, message.viewerId)

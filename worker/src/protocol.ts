@@ -56,7 +56,16 @@ export type Message =
   | { type: "peer_left"; peerId: string }
   | { type: "session_ended" }
   | { type: "leave" }
+  | { type: "ping" }
+  | { type: "pong" }
   | { type: "error"; code: ErrorCode; message: string };
+
+/**
+ * What a client sends to show it is still there, and the answer. The runtime replies to this exact
+ * text without waking the object, see Signaling, so a connection that only idles costs nothing.
+ */
+export const PING_TEXT = encode({ type: "ping" });
+export const PONG_TEXT = encode({ type: "pong" });
 
 /** Messages relayed between a host and one of its viewers. */
 export type Routed = Extract<Message, { type: "offer" | "answer" | "ice" }>;
@@ -121,6 +130,8 @@ export function decode(text: string): Message | null {
     }
     case "leave":
       return { type: "leave" };
+    case "ping":
+      return { type: "ping" };
     default:
       // Clients never send the other types; unknown ones are refused like malformed ones.
       return null;

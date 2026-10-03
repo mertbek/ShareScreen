@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { iceServers, IceEnv } from "./ice";
-import { decode, encode, Message } from "./protocol";
+import { decode, encode, Message, PING_TEXT, PONG_TEXT } from "./protocol";
 import {
   DEFAULT_CONFIG,
   PeerLink,
@@ -79,6 +79,7 @@ export class Signaling extends DurableObject<Env> {
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair(PING_TEXT, PONG_TEXT));
     ctx.blockConcurrencyWhile(async () => {
       const snapshot = await ctx.storage.get<Snapshot>(STATE_KEY);
       this.manager = new RoomManager(

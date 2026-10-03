@@ -115,3 +115,14 @@ which the viewer forgets the host and asks the usual way.
 Kotlin/Native iOS targets and the simulator need macOS and Xcode, so nothing iOS specific is
 built on Windows. Shared code stays free of JVM-only APIs so iOS can be added later; screen
 sharing there needs a ReplayKit broadcast extension and a physical device.
+
+## Keeping a connection alive
+
+A connection that idles for a few minutes can be forgotten on the way (a router, say) without either
+end being told, and the server would then hand a join request to a host that never gets it. The
+desktop and Android clients ask the engine to ping every 20 seconds and treat a missing answer as a
+dropped connection, which resumes the session. Browsers cannot send pings, so the web sends the
+message `ping` every 25 seconds and the server answers `pong`; the worker has the runtime answer
+that exact text without waking its object. A web connection that hears nothing for four rounds is
+closed and resumed. A server that does not know `ping` answers with a protocol error, which both
+sides ignore, so it also counts as an answer.

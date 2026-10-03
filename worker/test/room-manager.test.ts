@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decode } from "../src/protocol";
+import { decode, encode, PING_TEXT, PONG_TEXT } from "../src/protocol";
 import type { Hello, IceServerConfig, Message } from "../src/protocol";
 import { Config, DEFAULT_CONFIG, Member, PeerLink, RoomManager } from "../src/room-manager";
 
@@ -76,6 +76,20 @@ function guessWrong(manager: RoomManager, roomCode: string, times: number, addre
 }
 
 describe("RoomManager", () => {
+  it("answers a ping with a pong and nothing else", () => {
+    const { host, hostLink, viewerLink, manager } = roomWithViewer();
+    manager.handle(host, { type: "ping" });
+    expect(hostLink.takeAll()).toEqual([{ type: "pong" }]);
+    expect(viewerLink.takeAll()).toEqual([]);
+  });
+
+  it("reads the ping the apps send, and the text the runtime answers by itself is the same", () => {
+    expect(decode(`{"type":"ping"}`)).toEqual({ type: "ping" });
+    expect(PING_TEXT).toBe(`{"type":"ping"}`);
+    expect(PONG_TEXT).toBe(`{"type":"pong"}`);
+    expect(encode({ type: "ping" })).toBe(PING_TEXT);
+  });
+
   it("a host opens a room and gets a welcome with the ICE servers and a resume token", () => {
     const { manager } = setup();
     const link = new FakeLink();

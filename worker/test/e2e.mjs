@@ -73,6 +73,10 @@ assert.equal(hostWelcome.type, "welcome");
 assert.match(hostWelcome.roomCode, /^[A-HJ-NP-Z2-9]{6}$/);
 assert.ok(hostWelcome.iceServers.length > 0 && hostWelcome.resumeToken.length >= 22);
 
+step("a ping is answered with a pong");
+host.send({ type: "ping" });
+assert.deepEqual(await host.next(), { type: "pong" });
+
 step("wrong PIN and unknown room are refused");
 const wrong = await new Client("wrong").connect();
 wrong.send(hello("viewer", { roomCode: hostWelcome.roomCode, pin: "000000" }));
@@ -114,6 +118,8 @@ assert.equal((await host.next()).sdp, "restart answer");
 if (testEviction) {
   step("rooms survive the object being evicted from memory (idle 25 s)");
   await sleep(25_000);
+  host.send({ type: "ping" });
+  assert.deepEqual(await host.next(), { type: "pong" });
   host.send({ type: "offer", to: viewerWelcome.peerId, sdp: "after idle" });
   assert.equal((await again.next()).sdp, "after idle");
   again.send({ type: "answer", to: hostWelcome.peerId, sdp: "answer after idle" });

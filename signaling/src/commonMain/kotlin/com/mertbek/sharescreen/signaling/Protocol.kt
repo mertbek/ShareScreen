@@ -133,6 +133,14 @@ sealed interface SignalMessage {
     data object Leave : SignalMessage
 
     @Serializable
+    @SerialName("ping")
+    data object Ping : SignalMessage
+
+    @Serializable
+    @SerialName("pong")
+    data object Pong : SignalMessage
+
+    @Serializable
     @SerialName("error")
     data class Error(val code: ErrorCode, val message: String = "") : SignalMessage
 }
