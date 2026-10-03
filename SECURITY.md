@@ -22,7 +22,13 @@ Known limits by design:
 - A remembered device you let take control without asking gets control as soon as it asks,
   unless someone else has it. That is all of the device, as with any control. Turn it off for
   each device in the settings.
-- Signaling on the local network is not encrypted, so the PIN can be read by someone else on
-  that network. Use it on networks you trust.
+- The secret of a remembered device is kept as plain text in the app's private storage on
+  Android and in the user's preferences on a computer, so someone with access to that account
+  can read it.
+- Signaling on the local network is not encrypted, so the PIN, when one is used, can be read by
+  someone else on that network. Use it on networks you trust.
+- Over the internet a viewer needs the room code, the PIN and your approval. The signaling
+  server sees room codes, device names and connection details, but never picture or sound, which
+  go straight between the devices.
 - A viewer you allow to control a device controls all of it. On a computer that includes
   running programs.
