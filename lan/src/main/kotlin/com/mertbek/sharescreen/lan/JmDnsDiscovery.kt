@@ -101,6 +101,7 @@ class JmDnsBrowser(
         }
 
         override fun serviceResolved(event: ServiceEvent) {
+            if (event.info.getPropertyString(ATTRIBUTE_PROTOCOL) == null) return
             val host = event.info.inet4Addresses.firstOrNull()?.hostAddress ?: return
             if (excludeOwn && host in own) return
             val pinRequired = event.info.getPropertyString(ATTRIBUTE_PIN) != "0"
