@@ -90,6 +90,8 @@ import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.isTertiaryPressed
 import androidx.compose.ui.unit.IntSize
@@ -98,6 +100,8 @@ import com.mertbek.sharescreen.control.PointerButton
 import com.mertbek.sharescreen.app.AppServices
 import com.mertbek.sharescreen.control.ControlKey
 import com.mertbek.sharescreen.control.FittedRect
+import com.mertbek.sharescreen.control.Fingertip
+import com.mertbek.sharescreen.control.TouchMouse
 import com.mertbek.sharescreen.control.HostPlatform
 import com.mertbek.sharescreen.control.Zoom
 import com.mertbek.sharescreen.control.fitVideo
@@ -335,6 +339,7 @@ private fun InputSurface(
     val currentZoom by rememberUpdatedState(zoom)
     val currentVideo by rememberUpdatedState(videoSize)
     val currentOnPaste by rememberUpdatedState(onPaste)
+    val haptics = LocalHapticFeedback.current
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
     Box(
@@ -345,18 +350,41 @@ private fun InputSurface(
                 if (platform == HostPlatform.DESKTOP) forwardKey(session, event) else typeOnPhone(session, event, currentOnPaste)
             }
             .pointerInput(platform) {
+                val touchMouse = TouchMouse(viewConfiguration.touchSlop)
+                fun sendMouse(messages: List<ControlMessage.Pointer>) {
+                    // The finger held for a right click feels it happen.
+                    if (messages.any { it.button == PointerButton.RIGHT }) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    messages.forEach(session::pointer)
+                }
                 awaitPointerEventScope {
                     var sent = emptyList<TouchPointer>()
                     var activeButton = PointerButton.LEFT
                     var wentBack = false
+                    var lastTime = 0L
                     while (true) {
-                        val event = awaitPointerEvent()
+                        val holdDeadline = touchMouse.holdDeadline
+                        val event = if (holdDeadline == null) {
+                            awaitPointerEvent()
+                        } else {
+                            withTimeoutOrNull((holdDeadline - lastTime).coerceAtLeast(1L)) { awaitPointerEvent() }
+                        }
+                        if (event == null) {
+                            if (holdDeadline != null) sendMouse(touchMouse.hold(holdDeadline))
+                            continue
+                        }
+                        lastTime = event.changes.maxOf { it.uptimeMillis }
                         val fit = fitVideo(size.width.toFloat(), size.height.toFloat(), currentVideo.width, currentVideo.height)
                         // A click on the picture takes the keys back, say from the keyboard bar, so typing goes on there.
                         if (event.type == PointerEventType.Press && event.changes.any { it.type == PointerType.Mouse }) {
                             focusRequester.requestFocus()
                         }
-                        if (platform == HostPlatform.DESKTOP) {
+                        if (platform == HostPlatform.DESKTOP && event.changes.none { it.type == PointerType.Mouse }) {
+                            val fingers = event.changes.filter { it.pressed }.take(MAX_POINTERS).map {
+                                val (x, y) = mapToPicture(fit, currentZoom, it.position.x, it.position.y)
+                                Fingertip(it.id.value, it.position.x, it.position.y, x, y)
+                            }
+                            sendMouse(touchMouse.update(lastTime, fingers))
+                        } else if (platform == HostPlatform.DESKTOP) {
                             if (event.type == PointerEventType.Press) {
                                 activeButton = when {
                                     event.buttons.isSecondaryPressed -> PointerButton.RIGHT
