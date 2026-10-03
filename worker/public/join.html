@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>ShareScreen invite</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<main>
+  <img class="logo" src="/icon.svg" alt="" width="96" height="96">
+  <h1 data-t="joinTitle">Watch a screen</h1>
+  <p class="lead" id="who" data-t="joinLead">Someone invited you to watch their screen with ShareScreen.</p>
+
+  <a class="button" id="open" href="#" data-t="open">Open in ShareScreen</a>
+
+  <div class="card" id="codes" hidden>
+    <div><span data-t="room">Room code</span><strong id="room"></strong></div>
+    <div><span data-t="pin">PIN</span><strong id="pin"></strong></div>
+    <p class="hint" data-t="manual">In the app, choose “Watch a screen” and enter the room code and PIN.</p>
+  </div>
+
+  <p class="hint" data-t="noApp">Don’t have the app yet?</p>
+  <a class="button secondary" href="/ShareScreen-lite.apk" download data-t="download">Download for Android</a>
+
+  <p class="foot"><a href="/privacy" data-t="privacy">Privacy policy</a></p>
+</main>
+<script src="/site.js"></script>
+<script>
+  // The invite is in the fragment (after #), which browsers never send to a server.
+  const params = new URLSearchParams(location.hash.slice(1));
+  const room = params.get("r") || "";
+  const pin = params.get("p") || "";
+  const name = params.get("n") || "";
+
+  const app = new URLSearchParams({ s: "wss://" + location.host, r: room, pin });
+  if (name) app.set("n", name);
+  document.getElementById("open").href = "sharescreen://join?" + app.toString();
+
+  if (room) {
+    document.getElementById("room").textContent = room.replace(/(.{3})/, "$1 ");
+    document.getElementById("pin").textContent = pin.replace(/(.{3})/, "$1 ");
+    document.getElementById("codes").hidden = false;
+  } else {
+    document.getElementById("open").hidden = true;
+  }
+  if (name) {
+    const who = document.getElementById("who");
+    who.dataset.name = name;
+    window.applyLanguage && window.applyLanguage();
+  }
+</script>
+</body>
+</html>

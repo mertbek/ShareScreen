@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+.dev.vars
+# Copied in by scripts/deploy.ps1 from the release builds (full and lite).
+public/*.apk

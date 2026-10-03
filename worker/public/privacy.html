@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>ShareScreen privacy policy</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<main class="doc">
+
+<section lang="en">
+  <h1>ShareScreen privacy policy</h1>
+  <p><em>Last updated: 3 October 2026</em></p>
+  <p>ShareScreen lets Android devices, computers and web browsers watch, and optionally control, each other's screens. This page says what data the app and its signaling server handle. In short: no account, no ads, no analytics, and your screen never passes through our server.</p>
+
+  <h2>What travels where</h2>
+  <ul class="plain">
+    <li><strong>Picture, sound and control input</strong> go directly from the sharing device to the viewer (WebRTC, encrypted with DTLS-SRTP). On rare networks where a direct connection is impossible, an encrypted relay (TURN, run by Cloudflare) forwards the encrypted packets; it cannot read them.</li>
+    <li><strong>Connection setup</strong> goes through a small signaling server (Cloudflare Workers): a random room code, the PIN you show, the device names, and the technical messages devices exchange to connect. Rooms are kept only while a session lasts (plus up to 30 seconds after a dropped connection) and are deleted when it ends. We do not store them permanently and never see your screen. To slow down people who guess a PIN, a room also remembers a short one-way fingerprint of the address of each device that gave a wrong PIN or asked to join, never the address itself, and it goes with the room.</li>
+    <li><strong>On the same Wi-Fi</strong> devices connect to each other directly and no server is involved.</li>
+  </ul>
+
+  <h2>Data we do not collect</h2>
+  <p>We do not ask for your name, email or phone number, do not use advertising or analytics services, and do not sell or share data. Like every web service, the signaling server's host (Cloudflare) sees the IP address of connecting devices and may keep short-lived technical logs to operate and protect the service.</p>
+
+  <h2>Permissions</h2>
+  <ul class="plain">
+    <li><strong>Screen capture</strong> (system consent, every time): to share your screen.</li>
+    <li><strong>Microphone permission</strong>: Android requires it to capture the sound other apps play. Your microphone itself is never recorded or sent.</li>
+    <li><strong>Camera</strong>: only to scan a ShareScreen QR code. Nothing is recorded or stored.</li>
+    <li><strong>Notifications</strong>: to show that sharing is active and to let you answer watch and control requests.</li>
+    <li><strong>Network and nearby devices</strong>: to connect to the other device and find it on your Wi-Fi.</li>
+  </ul>
+
+  <h2>Accessibility service (remote control)</h2>
+  <p>Remote control is optional and off by default. If you turn it on, you enable ShareScreen's accessibility service yourself in Android settings. It lets a viewer <em>whom you approved</em> tap, swipe and type on your device, and it is only active while you have given someone control; you can take control back at any moment. To type, it reads the text field being typed into. It does not read, collect, store or send anything else from your screen, and it listens to no accessibility events.</p>
+
+  <h2>Your choices</h2>
+  <p>You approve every viewer and every request for control, and can disconnect anyone or stop sharing at any time. Turning the accessibility service off in Android settings ends remote control completely. Uninstalling the app removes everything it stored on your device (your settings).</p>
+
+  <h2>Children</h2>
+  <p>ShareScreen is not directed at children under 13 and does not knowingly collect their data.</p>
+
+  <h2>Changes and contact</h2>
+  <p>If this policy changes, the date above changes with it. Questions: contact the developer through the app's store listing.</p>
+</section>
+
+<section lang="tr">
+  <h1>ShareScreen gizlilik politikası</h1>
+  <p><em>Son güncelleme: 3 Ekim 2026</em></p>
+  <p>ShareScreen, Android cihazların, bilgisayarların ve web tarayıcılarının birbirinin ekranını izlemesini ve isteğe bağlı olarak kontrol etmesini sağlar. Bu sayfa uygulamanın ve sinyal sunucusunun hangi verilerle çalıştığını anlatır. Kısaca: hesap yok, reklam yok, analiz yok ve ekranın hiçbir zaman sunucumuzdan geçmez.</p>
+
+  <h2>Ne nereden geçer</h2>
+  <ul class="plain">
+    <li><strong>Görüntü, ses ve kontrol girdileri</strong> paylaşan cihazdan izleyiciye doğrudan gider (WebRTC, DTLS-SRTP ile şifreli). Doğrudan bağlantının mümkün olmadığı nadir ağlarda, şifreli paketleri Cloudflare'in işlettiği şifreli bir aktarıcı (TURN) iletir; içeriği okuyamaz.</li>
+    <li><strong>Bağlantı kurulumu</strong> küçük bir sinyal sunucusundan (Cloudflare Workers) geçer: rastgele bir oda kodu, gösterdiğin PIN, cihaz adları ve cihazların bağlanmak için değiştiği teknik mesajlar. Odalar yalnızca oturum sürdüğü sürece (bağlantı kopunca en çok 30 saniye daha) tutulur ve oturum bitince silinir. Kalıcı saklamayız ve ekranını hiç görmeyiz. PIN tahmin edenleri yavaşlatmak için oda, yanlış PIN veren ya da katılmak isteyen her cihazın adresinin kısa ve tek yönlü bir parmak izini (adresin kendisini asla) hatırlar ve bu odayla birlikte silinir.</li>
+    <li><strong>Aynı Wi-Fi'da</strong> cihazlar birbirine doğrudan bağlanır, hiçbir sunucu araya girmez.</li>
+  </ul>
+
+  <h2>Toplamadığımız veriler</h2>
+  <p>Adını, e-postanı veya telefon numaranı istemeyiz, reklam ya da analiz hizmeti kullanmayız, veri satmaz veya paylaşmayız. Her web hizmeti gibi sinyal sunucusunun barındırıcısı (Cloudflare) bağlanan cihazların IP adresini görür ve hizmeti işletmek ve korumak için kısa süreli teknik kayıtlar tutabilir.</p>
+
+  <h2>İzinler</h2>
+  <ul class="plain">
+    <li><strong>Ekran yakalama</strong> (her seferinde sistem onayı): ekranını paylaşmak için.</li>
+    <li><strong>Mikrofon izni</strong>: Android, diğer uygulamaların çaldığı sesi yakalamak için bunu ister. Mikrofonun kendisi hiçbir zaman kaydedilmez veya gönderilmez.</li>
+    <li><strong>Kamera</strong>: yalnızca ShareScreen QR kodunu taramak için. Hiçbir şey kaydedilmez veya saklanmaz.</li>
+    <li><strong>Bildirimler</strong>: paylaşımın sürdüğünü göstermek ve izleme ile kontrol isteklerini yanıtlamana izin vermek için.</li>
+    <li><strong>Ağ ve yakındaki cihazlar</strong>: diğer cihaza bağlanmak ve Wi-Fi'da bulmak için.</li>
+  </ul>
+
+  <h2>Erişilebilirlik hizmeti (uzaktan kontrol)</h2>
+  <p>Uzaktan kontrol isteğe bağlıdır ve varsayılan olarak kapalıdır. Açarsan ShareScreen'in erişilebilirlik hizmetini Android ayarlarından kendin etkinleştirirsin. <em>Onayladığın</em> bir izleyicinin cihazında dokunmasını, kaydırmasını ve yazmasını sağlar; yalnızca birine kontrol verdiğin sürece etkindir ve kontrolü istediğin an geri alabilirsin. Yazabilmek için yazılan metin alanını okur. Ekranındaki başka hiçbir şeyi okumaz, toplamaz, saklamaz veya göndermez ve hiçbir erişilebilirlik olayını dinlemez.</p>
+
+  <h2>Tercihlerin</h2>
+  <p>Her izleyiciyi ve her kontrol isteğini sen onaylarsın; istediğin an herkesin bağlantısını kesebilir veya paylaşımı durdurabilirsin. Android ayarlarında erişilebilirlik hizmetini kapatmak uzaktan kontrolü tamamen bitirir. Uygulamayı kaldırmak, cihazında sakladığı her şeyi (ayarların) siler.</p>
+
+  <h2>Çocuklar</h2>
+  <p>ShareScreen 13 yaşından küçük çocuklara yönelik değildir ve onların verilerini bilerek toplamaz.</p>
+
+  <h2>Değişiklikler ve iletişim</h2>
+  <p>Bu politika değişirse yukarıdaki tarih de değişir. Sorular için geliştiriciyle uygulamanın mağaza sayfası üzerinden iletişime geç.</p>
+</section>
+
+<p class="foot"><a href="/">ShareScreen</a></p>
+</main>
+<script>
+  // Show the section in the browser's language first; without JavaScript both are shown.
+  const preferred = (navigator.language || "en").toLowerCase().startsWith("tr") ? "tr" : "en";
+  for (const section of document.querySelectorAll("section[lang]")) section.hidden = section.lang !== preferred;
+</script>
+</body>
+</html>
