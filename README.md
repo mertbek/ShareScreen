@@ -9,7 +9,7 @@ See [docs/architecture.md](docs/architecture.md) for the design.
 
 Packages for Android, Windows, macOS and Linux are on the
 [releases page](https://github.com/mertbek/ShareScreen/releases/latest). The web version runs at
-https://mertbek.github.io/ShareScreen/.
+https://share-screen.com/.
 
 ## Build
 
@@ -40,7 +40,7 @@ in [`worker`](worker), which runs on the free plan and also serves the invite an
 
 Invite links and QR codes for internet sharing open the web app. On Android and desktop the page
 first hands the invite to the installed app through a `sharescreen://` link and joins the room in
-the browser when no app takes it. The apps point invites at https://mertbek.github.io/ShareScreen/;
+the browser when no app takes it. The apps point invites at https://share-screen.com/;
 give another address as `sharescreen.web` in the same places. The web app links to itself.
 
 ## Android editions

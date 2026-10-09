@@ -11,5 +11,9 @@
     "bindings": [{ "name": "SIGNALING", "class_name": "Signaling" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Signaling"] }],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // The share-screen.com zone must be on the same Cloudflare account. The workers.dev address
+  // stays on for builds that still point at it.
+  "routes": [{ "pattern": "signal.share-screen.com", "custom_domain": true }],
+  "workers_dev": true
 }

@@ -43,8 +43,9 @@ npx wrangler login     # once
 .\worker\scripts\deploy.ps1
 ```
 
-The script runs the type check and the tests and calls `wrangler deploy`. The address of the server shows at the end. Give it to the
-apps as `sharescreen.server=wss://<that address>`, see the main README.
+The script runs the type check and the tests and calls `wrangler deploy`. The Worker answers at
+`signal.share-screen.com` (the route in `wrangler.jsonc`) and at its workers.dev address. Give it to
+the apps as `sharescreen.server=wss://signal.share-screen.com`, see the main README.
 
 ## TURN (optional)
 

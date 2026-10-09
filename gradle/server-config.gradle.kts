@@ -15,7 +15,7 @@ val configuredWebApp: String? = (
     providers.gradleProperty("sharescreen.web").orNull
         ?: providers.environmentVariable("SHARESCREEN_WEB").orNull
         ?: localProperties.getProperty("sharescreen.web")
-        ?: "https://mertbek.github.io/ShareScreen/"
+        ?: "https://share-screen.com/"
     ).trim().takeIf { it.isNotEmpty() }
 
 val configuredVersion: String = providers.gradleProperty("sharescreen.version").orNull ?: "dev"
