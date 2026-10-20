@@ -12,9 +12,9 @@
     "e2e": "node test/e2e.mjs"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260926.1",
+    "@cloudflare/workers-types": "^5.20261016.1",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.3",
-    "wrangler": "^4.147.0"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.1"
   }
 }
